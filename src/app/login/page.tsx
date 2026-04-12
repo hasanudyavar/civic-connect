@@ -21,11 +21,25 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
+      let loginEmail = email.trim().toLowerCase();
+      
+      // Map specific IDs to their system emails
+      const idMap: Record<string, string> = {
+        'superadmin': 'superadmin@system.com',
+        'city admin': 'cityadmin@system.com',
+        'ws': 'ws@system.com',
+        'staff': 'staff@system.com',
+      };
+      
+      if (idMap[loginEmail]) {
+        loginEmail = idMap[loginEmail];
+      }
+
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
       const supabase = createBrowserSupabaseClient();
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: loginEmail,
         password,
       });
 
@@ -85,11 +99,11 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(255,255,255,0.03)] to-transparent pointer-events-none" />
           <div className="space-y-6 relative z-10">
             <div>
-              <label className="block text-sm font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wide">Email Address</label>
+              <label className="block text-sm font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wide">ID or Email Address</label>
               <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="glass-input !py-3.5 !text-base focus:shadow-[0_0_15px_rgba(0,105,72,0.2)] transition-shadow duration-300" autoComplete="email"
+                type="text" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="Enter your ID or email"
+                className="glass-input !py-3.5 !text-base focus:shadow-[0_0_15px_rgba(0,105,72,0.2)] transition-shadow duration-300" autoComplete="username"
                 required
               />
             </div>

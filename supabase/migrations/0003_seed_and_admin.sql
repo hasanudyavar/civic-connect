@@ -39,10 +39,11 @@ INSERT INTO public.system_settings (key, value) VALUES
     ('support_email', 'support@bhatkal.gov.in')
 ON CONFLICT (key) DO NOTHING;
 
--- 5. Seed Superadmin (ID: a2f2eecb-3942-431e-83a4-254baca904bc, Email: superadmin@system.com, Password: StrongPassword@123)
+-- 5. Seed Users
 -- Delete if exists
-DELETE FROM auth.users WHERE email = 'superadmin@system.com';
+DELETE FROM auth.users WHERE email IN ('superadmin@system.com', 'cityadmin@system.com', 'ws@system.com', 'staff@system.com');
 
+-- A) Superadmin
 INSERT INTO auth.users (
     instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
     raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, 
@@ -51,21 +52,65 @@ INSERT INTO auth.users (
     '00000000-0000-0000-0000-000000000000',
     'a2f2eecb-3942-431e-83a4-254baca904bc',
     'authenticated', 'authenticated', 'superadmin@system.com',
-    -- Equivalent to "StrongPassword@123" encrypted with bcrypt
-    crypt('StrongPassword@123', gen_salt('bf')),
+    crypt('superadmin', gen_salt('bf')),
     NOW(),
     '{"provider": "email", "providers": ["email"], "role": "super_admin"}',
     '{"full_name": "Super Administrator", "phone": "+91 9999999999"}',
     FALSE, NOW(), NOW(), '', '', '', ''
 );
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES (gen_random_uuid(), 'a2f2eecb-3942-431e-83a4-254baca904bc', 'a2f2eecb-3942-431e-83a4-254baca904bc', format('{"sub": "%s", "email": "%s"}', 'a2f2eecb-3942-431e-83a4-254baca904bc', 'superadmin@system.com')::jsonb, 'email', NOW(), NOW(), NOW());
+UPDATE public.profiles SET role = 'super_admin'::public.user_role WHERE id = 'a2f2eecb-3942-431e-83a4-254baca904bc';
 
-INSERT INTO auth.identities (
-    id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+-- B) City Admin (Taluk Admin)
+INSERT INTO auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
+    raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, 
+    confirmation_token, recovery_token, email_change_token_new, email_change
 ) VALUES (
-    gen_random_uuid(), 'a2f2eecb-3942-431e-83a4-254baca904bc', 'a2f2eecb-3942-431e-83a4-254baca904bc', format('{"sub": "%s", "email": "%s"}', 'a2f2eecb-3942-431e-83a4-254baca904bc', 'superadmin@system.com')::jsonb, 'email', NOW(), NOW(), NOW()
+    '00000000-0000-0000-0000-000000000000',
+    'b2f2eecb-3942-431e-83a4-254baca904bc',
+    'authenticated', 'authenticated', 'cityadmin@system.com',
+    crypt('city admin', gen_salt('bf')),
+    NOW(),
+    '{"provider": "email", "providers": ["email"], "role": "taluk_admin"}',
+    '{"full_name": "City Administrator", "phone": "+91 8888888888"}',
+    FALSE, NOW(), NOW(), '', '', '', ''
 );
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES (gen_random_uuid(), 'b2f2eecb-3942-431e-83a4-254baca904bc', 'b2f2eecb-3942-431e-83a4-254baca904bc', format('{"sub": "%s", "email": "%s"}', 'b2f2eecb-3942-431e-83a4-254baca904bc', 'cityadmin@system.com')::jsonb, 'email', NOW(), NOW(), NOW());
+UPDATE public.profiles SET role = 'taluk_admin'::public.user_role WHERE id = 'b2f2eecb-3942-431e-83a4-254baca904bc';
 
--- Force super admin role in profiles table
-UPDATE public.profiles
-SET role = 'super_admin'::public.user_role
-WHERE id = 'a2f2eecb-3942-431e-83a4-254baca904bc';
+-- C) Ward Supervisor
+INSERT INTO auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
+    raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, 
+    confirmation_token, recovery_token, email_change_token_new, email_change
+) VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    'c2f2eecb-3942-431e-83a4-254baca904bc',
+    'authenticated', 'authenticated', 'ws@system.com',
+    crypt('ws', gen_salt('bf')),
+    NOW(),
+    '{"provider": "email", "providers": ["email"], "role": "ward_supervisor"}',
+    '{"full_name": "Ward Supervisor", "phone": "+91 7777777777"}',
+    FALSE, NOW(), NOW(), '', '', '', ''
+);
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES (gen_random_uuid(), 'c2f2eecb-3942-431e-83a4-254baca904bc', 'c2f2eecb-3942-431e-83a4-254baca904bc', format('{"sub": "%s", "email": "%s"}', 'c2f2eecb-3942-431e-83a4-254baca904bc', 'ws@system.com')::jsonb, 'email', NOW(), NOW(), NOW());
+UPDATE public.profiles SET role = 'ward_supervisor'::public.user_role, ward_id = 'b0100000-0000-0000-0000-000000000001' WHERE id = 'c2f2eecb-3942-431e-83a4-254baca904bc';
+
+-- D) Staff
+INSERT INTO auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
+    raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, 
+    confirmation_token, recovery_token, email_change_token_new, email_change
+) VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    'd2f2eecb-3942-431e-83a4-254baca904bc',
+    'authenticated', 'authenticated', 'staff@system.com',
+    crypt('staff', gen_salt('bf')),
+    NOW(),
+    '{"provider": "email", "providers": ["email"], "role": "dept_staff"}',
+    '{"full_name": "Department Staff", "phone": "+91 6666666666"}',
+    FALSE, NOW(), NOW(), '', '', '', ''
+);
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES (gen_random_uuid(), 'd2f2eecb-3942-431e-83a4-254baca904bc', 'd2f2eecb-3942-431e-83a4-254baca904bc', format('{"sub": "%s", "email": "%s"}', 'd2f2eecb-3942-431e-83a4-254baca904bc', 'staff@system.com')::jsonb, 'email', NOW(), NOW(), NOW());
+UPDATE public.profiles SET role = 'dept_staff'::public.user_role, department_id = 'a1000000-0000-0000-0000-000000000001' WHERE id = 'd2f2eecb-3942-431e-83a4-254baca904bc';

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Profile, UserRole, Ward, Department } from '@/lib/types';
 import { ROLE_LABELS } from '@/lib/constants';
-import { Plus, Search, Pencil, Shield, ToggleLeft, ToggleRight, X, Lock, Loader2, Users } from 'lucide-react';
+import { Plus, Search, Pencil, Shield, ToggleLeft, ToggleRight, X, Lock, Loader2, Users, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const roleColors: Record<string, string> = {
@@ -103,6 +103,26 @@ export default function AdminUsersPage() {
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: !u.is_active } : u));
       toast.success(`${user.full_name} profile ${user.is_active ? 'deactivated' : 'reactivated'}`);
     } catch { toast.error('Node update failed'); }
+  };
+
+  const deleteUser = async (user: Profile) => {
+    if (currentUserRole !== 'super_admin') { toast.error('Action restricted to Super Admin only'); return; }
+    if (!confirm(`Are you sure you want to permanently delete the account of ${user.full_name}? This action cannot be undone.`)) return;
+    
+    try {
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.error || 'Failed to delete user'); return; }
+      
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+      toast.success(`Identity "${user.full_name}" permanently deleted`);
+    } catch {
+      toast.error('System failure during deletion');
+    }
   };
 
   if (loading) {
@@ -204,6 +224,11 @@ export default function AdminUsersPage() {
                             <button onClick={() => toggleActive(u)} className="p-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--outline)] hover:border-[var(--on-surface)] transition-all" title="Toggle Grid Access">
                               {u.is_active ? <ToggleRight className="w-4 h-4 text-[var(--success)]" /> : <ToggleLeft className="w-4 h-4 text-[var(--danger)]" />}
                             </button>
+                            {currentUserRole === 'super_admin' && (
+                              <button onClick={() => deleteUser(u)} className="p-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--outline)] hover:border-[var(--danger)] hover:text-[var(--danger)] transition-all" title="Permanently Delete Identity">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </>
                         ) : (
                           <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--outline)] opacity-50 px-2">Clearance Denied</span>
