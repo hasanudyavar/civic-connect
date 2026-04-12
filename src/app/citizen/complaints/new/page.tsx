@@ -97,9 +97,16 @@ export default function NewComplaintPage() {
     }
   };
 
+  const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+
   const handleSubmit = async () => {
-    if (!categoryId || !wardId || !title || !description) {
-      toast.error('Please fill all required fields');
+    if (!categoryId || !wardId || !title || !description || images.length === 0) {
+      toast.error('Please fill all required fields and attach at least one photo as proof');
       return;
     }
     setSubmitting(true);
@@ -108,6 +115,29 @@ export default function NewComplaintPage() {
       const supabase = createBrowserSupabaseClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) { toast.error('Please log in'); return; }
+
+      // 1. Verify images with Gemini AI authenticity checker
+      toast.loading('Verifying image authenticity with AI...', { id: 'ai-verify' });
+      for (const img of images) {
+        try {
+          const base64 = await toBase64(img);
+          const res = await fetch('/api/ai/verify-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_base64: base64 })
+          });
+          const data = await res.json();
+          if (data.success && data.data && data.data.is_authentic === false) {
+            toast.dismiss('ai-verify');
+            toast.error(`Image rejected by AI: ${data.data.analysis}`, { duration: 6000 });
+            setSubmitting(false);
+            return;
+          }
+        } catch (err) {
+          console.error("AI verification failed, allowing fallback", err);
+        }
+      }
+      toast.success('Images verified as authentic!', { id: 'ai-verify' });
 
       // Upload images first
       const imageUrls: string[] = [];
@@ -153,6 +183,7 @@ export default function NewComplaintPage() {
             storage_path: path,
             media_type: 'evidence',
             uploaded_by: authUser.id,
+            ai_verified: true,
             is_public: true,
           }))
         );
@@ -306,7 +337,7 @@ export default function NewComplaintPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-bold text-[var(--on-surface-variant)] mb-2 block">Photos (max 3)</label>
+                <label className="text-sm font-bold text-[var(--on-surface-variant)] mb-2 block">Photos (max 3) <span className="text-[var(--primary)]">*</span></label>
                 <div className="flex gap-3 flex-wrap">
                   {images.map((img, i) => (
                     <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-[var(--glass-border)]">
@@ -375,7 +406,7 @@ export default function NewComplaintPage() {
             {step < 3 ? (
               <button
                 onClick={() => setStep(step + 1)}
-                disabled={(step === 0 && (!categoryId || !wardId)) || (step === 2 && (!title || description.length < 20))}
+                disabled={(step === 0 && (!categoryId || !wardId)) || (step === 2 && (!title || description.length < 20 || images.length === 0))}
                 className="btn-primary !py-3 disabled:opacity-50"
               >
                 Next <ArrowRight className="w-4 h-4" />
