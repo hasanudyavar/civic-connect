@@ -86,7 +86,9 @@ export interface Complaint {
   title: string;
   description: string;
   ai_description: string | null;
-  // PostGIS location — stored as GEOMETRY but we read lat/lng from queries
+  // Location (stored as lat/lng columns)
+  latitude: number;
+  longitude: number;
   address: string | null;
   response_sla_deadline: string | null;
   resolution_sla_deadline: string | null;

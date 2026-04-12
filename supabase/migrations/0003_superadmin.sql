@@ -1,16 +1,14 @@
 -- ============================================================
--- Civic Connect — Super Admin Seeder v3.0
+-- Civic Connect — Super Admin Seeder v4.0
 -- Run AFTER 0002_seed.sql
 --
 -- Credentials:
 --   Email:    superadmin@system.com
 --   Password: StrongPassword@123
 --
--- Idempotent: safe to re-run. If the superadmin already
--- exists, it simply ensures the profile role is super_admin.
+-- Idempotent: safe to re-run.
 -- ============================================================
 
--- Ensure pgcrypto is available for crypt() / gen_salt()
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DO $$
@@ -19,15 +17,12 @@ DECLARE
   existing_id     UUID;
   identity_exists BOOLEAN;
 BEGIN
-  -- ──────────────────────────────────────────────────────────
-  -- 1. Check if superadmin already exists in auth.users
-  -- ──────────────────────────────────────────────────────────
+  -- 1. Check if superadmin already exists
   SELECT id INTO existing_id
   FROM auth.users
   WHERE email = 'superadmin@system.com';
 
   IF existing_id IS NOT NULL THEN
-    -- Already exists — just ensure profile has super_admin role
     UPDATE public.profiles
     SET role = 'super_admin',
         full_name = COALESCE(full_name, 'Super Administrator'),
@@ -38,14 +33,10 @@ BEGIN
     RETURN;
   END IF;
 
-  -- ──────────────────────────────────────────────────────────
   -- 2. Generate a new ID
-  -- ──────────────────────────────────────────────────────────
   superadmin_id := gen_random_uuid();
 
-  -- ──────────────────────────────────────────────────────────
   -- 3. Insert into auth.users
-  -- ──────────────────────────────────────────────────────────
   INSERT INTO auth.users (
     id,
     instance_id,
@@ -67,8 +58,8 @@ BEGIN
     'superadmin@system.com',
     crypt('StrongPassword@123', gen_salt('bf')),
     NOW(),
-    '',   -- empty confirmation token (already confirmed)
-    '',   -- empty recovery token
+    '',
+    '',
     jsonb_build_object(
       'full_name', 'Super Administrator',
       'phone',     '+91 9999999999'
@@ -80,16 +71,12 @@ BEGIN
     ),
     'authenticated',
     'authenticated',
-    false,  -- is_super_admin (Supabase internal flag, not our app role)
+    false,
     NOW(),
     NOW()
   );
 
-  -- ──────────────────────────────────────────────────────────
-  -- 4. Insert into auth.identities
-  --    Required for Supabase signInWithPassword() to work.
-  --    Skip if already exists (safety).
-  -- ──────────────────────────────────────────────────────────
+  -- 4. Insert into auth.identities (required for signInWithPassword)
   SELECT EXISTS (
     SELECT 1 FROM auth.identities
     WHERE user_id = superadmin_id AND provider = 'email'
@@ -120,11 +107,7 @@ BEGIN
     );
   END IF;
 
-  -- ──────────────────────────────────────────────────────────
   -- 5. Upsert into public.profiles
-  --    The handle_new_user() trigger may have already inserted
-  --    a row with role='citizen'. We override it to super_admin.
-  -- ──────────────────────────────────────────────────────────
   INSERT INTO public.profiles (id, full_name, phone, role, is_active)
   VALUES (
     superadmin_id,

@@ -34,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# build logs
+build.log
+build-warnings*.txt
+
+# temporary database scripts
+supabase/diagnose.mjs
+supabase/fix-database.mjs
+supabase/run-migrations.mjs
+supabase/REPAIR_DATABASE.sql

@@ -1,13 +1,19 @@
 -- ============================================================
--- Civic Connect — Complete Production Schema v3.0
+-- Civic Connect — Complete Production Schema v4.0 (FIXED)
 -- Run in Supabase SQL Editor FIRST
 -- Idempotent: safe to re-run
+--
+-- CHANGES from v3:
+--   • Removed PostGIS dependency (uses lat/lng DOUBLE PRECISION)
+--   • Added pg_trgm extension safely
+--   • Fixed handle_new_user() with proper error handling
+--   • All functions have explicit search_path = public
+--   • Trigger creation uses safe DO blocks
 -- ============================================================
 
--- Enable Extensions
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- fuzzy text search
-CREATE EXTENSION IF NOT EXISTS pgcrypto; -- for crypt() / gen_salt()
+-- Enable Extensions (safe — these are always available on Supabase)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- ============================================================
 -- ENUMS
@@ -48,7 +54,8 @@ CREATE TABLE IF NOT EXISTS wards (
     name TEXT NOT NULL,
     ward_number INTEGER NOT NULL UNIQUE,
     city TEXT NOT NULL DEFAULT 'Bhatkal',
-    boundary GEOMETRY(POLYGON, 4326),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
     contact_phone TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -69,7 +76,7 @@ CREATE TABLE IF NOT EXISTS departments (
 -- Profiles (extends auth.users)
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    full_name TEXT NOT NULL,
+    full_name TEXT NOT NULL DEFAULT 'User',
     phone TEXT,
     avatar_url TEXT,
     role user_role NOT NULL DEFAULT 'citizen',
@@ -100,8 +107,7 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Complaints (core table)
--- NOTE: ticket_id defaults to '' and is auto-filled by the generate_ticket_id trigger.
+-- Complaints (core table — uses lat/lng instead of PostGIS geometry)
 CREATE TABLE IF NOT EXISTS complaints (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ticket_id TEXT UNIQUE NOT NULL DEFAULT '',
@@ -118,9 +124,10 @@ CREATE TABLE IF NOT EXISTS complaints (
     description TEXT NOT NULL CHECK (char_length(description) >= 20),
     ai_description TEXT,
 
-    location GEOMETRY(POINT, 4326) NOT NULL,
+    -- Location (simple lat/lng — no PostGIS required)
+    latitude DOUBLE PRECISION NOT NULL DEFAULT 0,
+    longitude DOUBLE PRECISION NOT NULL DEFAULT 0,
     address TEXT,
-    public_location GEOMETRY(POINT, 4326),
 
     -- SLA tracking
     response_sla_deadline TIMESTAMPTZ,
@@ -262,8 +269,6 @@ CREATE INDEX IF NOT EXISTS idx_complaints_category   ON complaints(category_id);
 CREATE INDEX IF NOT EXISTS idx_complaints_assigned   ON complaints(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_complaints_created    ON complaints(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_complaints_ticket     ON complaints(ticket_id);
-CREATE INDEX IF NOT EXISTS idx_complaints_geo        ON complaints USING GIST(location);
-CREATE INDEX IF NOT EXISTS idx_complaints_public_geo ON complaints USING GIST(public_location);
 CREATE INDEX IF NOT EXISTS idx_complaints_title_trgm ON complaints USING GIN(title gin_trgm_ops);
 
 CREATE INDEX IF NOT EXISTS idx_profiles_role         ON profiles(role);
@@ -292,7 +297,7 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 
 DO $$ BEGIN
   CREATE TRIGGER trg_complaints_updated
@@ -319,7 +324,7 @@ BEGIN
   RAISE EXCEPTION 'This table is immutable. UPDATE and DELETE are not permitted.';
   RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 
 DO $$ BEGIN
   CREATE TRIGGER trg_status_history_immutable
@@ -335,7 +340,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- Generate sequential ticket ID (race-condition safe with advisory lock)
+-- Generate sequential ticket ID
 CREATE OR REPLACE FUNCTION generate_ticket_id()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -343,8 +348,6 @@ DECLARE
   seq_num INTEGER;
 BEGIN
   year_str := TO_CHAR(NOW(), 'YYYY');
-
-  -- Advisory lock prevents concurrent inserts from getting same sequence
   PERFORM pg_advisory_xact_lock(hashtext('ticket_id_' || year_str));
 
   SELECT COALESCE(MAX(
@@ -405,6 +408,9 @@ BEGIN
     VALUES (NEW.id, OLD.status, NEW.status, COALESCE(auth.uid(), NEW.assigned_to));
   END IF;
   RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Don't let logging failures break the status update
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
@@ -421,7 +427,6 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF OLD.status = NEW.status THEN RETURN NEW; END IF;
 
-  -- Valid transitions
   IF (OLD.status = 'NEW'         AND NEW.status IN ('ASSIGNED', 'ESCALATED')) OR
      (OLD.status = 'ASSIGNED'    AND NEW.status IN ('IN_PROGRESS', 'ESCALATED')) OR
      (OLD.status = 'IN_PROGRESS' AND NEW.status IN ('RESOLVED', 'ESCALATED')) OR
@@ -429,7 +434,6 @@ BEGIN
      (OLD.status = 'REOPENED'    AND NEW.status IN ('ASSIGNED', 'ESCALATED')) OR
      (OLD.status = 'ESCALATED'   AND NEW.status IN ('ASSIGNED'))
   THEN
-    -- Set timestamps
     IF NEW.status = 'ASSIGNED' AND OLD.assigned_at IS NULL THEN
       NEW.assigned_at := NOW();
     END IF;
@@ -455,57 +459,25 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- Duplicate detection function
-CREATE OR REPLACE FUNCTION check_duplicate_complaints(
-  p_lat DOUBLE PRECISION,
-  p_lng DOUBLE PRECISION,
-  p_category_id UUID,
-  p_hours INTEGER DEFAULT 48
-)
-RETURNS TABLE (
-  id UUID,
-  ticket_id TEXT,
-  title TEXT,
-  status complaint_status,
-  distance_meters DOUBLE PRECISION,
-  created_at TIMESTAMPTZ
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    c.id, c.ticket_id, c.title, c.status,
-    ST_Distance(
-      c.location::geography,
-      ST_SetSRID(ST_MakePoint(p_lng, p_lat), 4326)::geography
-    ) AS distance_meters,
-    c.created_at
-  FROM complaints c
-  WHERE ST_DWithin(
-    c.location::geography,
-    ST_SetSRID(ST_MakePoint(p_lng, p_lat), 4326)::geography,
-    200
-  )
-  AND c.category_id = p_category_id
-  AND c.created_at >= NOW() - (p_hours || ' hours')::INTERVAL
-  AND c.status NOT IN ('CLOSED')
-  ORDER BY distance_meters ASC
-  LIMIT 5;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
--- Get user role helper
+-- Get user role helper (used by RLS policies)
 CREATE OR REPLACE FUNCTION get_my_role()
 RETURNS user_role AS $$
-  SELECT role FROM profiles WHERE id = auth.uid();
+  SELECT COALESCE(
+    (SELECT role FROM public.profiles WHERE id = auth.uid()),
+    'citizen'::user_role
+  );
 $$ LANGUAGE SQL SECURITY DEFINER STABLE SET search_path = public;
 
 -- Get user ward helper
 CREATE OR REPLACE FUNCTION get_my_ward()
 RETURNS UUID AS $$
-  SELECT ward_id FROM profiles WHERE id = auth.uid();
+  SELECT ward_id FROM public.profiles WHERE id = auth.uid();
 $$ LANGUAGE SQL SECURITY DEFINER STABLE SET search_path = public;
 
--- Auto-create profile on signup
+-- ============================================================
+-- AUTH TRIGGER: Auto-create profile on signup
+-- This is the CRITICAL function — if it breaks, ALL auth breaks.
+-- ============================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -514,16 +486,21 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
     COALESCE(NEW.phone, NEW.raw_user_meta_data->>'phone'),
-    'citizen'
+    COALESCE(
+      (NEW.raw_app_meta_data->>'role')::public.user_role,
+      'citizen'::public.user_role
+    )
   )
   ON CONFLICT (id) DO NOTHING;
-  -- ON CONFLICT DO NOTHING prevents duplicate errors when profile
-  -- is created manually (e.g. by the superadmin seeder or create-user API)
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- NEVER let this trigger fail — it would block ALL signups/logins
+  RAISE WARNING 'handle_new_user failed for %: %', NEW.id, SQLERRM;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Drop and re-create the auth trigger to avoid stale references
+-- Drop and re-create the auth trigger safely
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
