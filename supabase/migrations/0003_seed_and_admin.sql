@@ -52,7 +52,7 @@ INSERT INTO auth.users (
     '00000000-0000-0000-0000-000000000000',
     'a2f2eecb-3942-431e-83a4-254baca904bc',
     'authenticated', 'authenticated', 'superadmin@system.com',
-    crypt('superadmin', gen_salt('bf')),
+    crypt('StrongPassword@123', gen_salt('bf')),
     NOW(),
     '{"provider": "email", "providers": ["email"], "role": "super_admin"}',
     '{"full_name": "Super Administrator", "phone": "+91 9999999999"}',
