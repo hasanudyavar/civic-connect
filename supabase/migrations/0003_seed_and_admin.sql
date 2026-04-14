@@ -41,7 +41,7 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 5. Seed Users
 -- Delete if exists
-DELETE FROM auth.users WHERE email IN ('superadmin@system.com', 'cityadmin@system.com', 'ws@system.com', 'staff@system.com');
+DELETE FROM auth.users WHERE email IN ('superadmin@system.com', 'mohammadhasan16114@gmail.com', 'cityadmin@system.com', 'ws@system.com', 'staff@system.com');
 
 -- A) Superadmin
 INSERT INTO auth.users (
@@ -51,8 +51,8 @@ INSERT INTO auth.users (
 ) VALUES (
     '00000000-0000-0000-0000-000000000000',
     'a2f2eecb-3942-431e-83a4-254baca904bc',
-    'authenticated', 'authenticated', 'superadmin@system.com',
-    crypt('StrongPassword@123', gen_salt('bf')),
+    'authenticated', 'authenticated', 'mohammadhasan16114@gmail.com',
+    crypt('Mohammad04@', gen_salt('bf')),
     NOW(),
     '{"provider": "email", "providers": ["email"], "role": "super_admin"}',
     '{"full_name": "Super Administrator", "phone": "+91 9999999999"}',

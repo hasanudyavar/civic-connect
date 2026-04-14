@@ -45,6 +45,16 @@ export default function BrandingPage() {
     }
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+      const reader = new FileReader();
+      reader.onloadend = () => update('logo_url', reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (loading) {
     return <DashboardShell><div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" /></div></DashboardShell>;
   }
@@ -88,8 +98,14 @@ export default function BrandingPage() {
           <h2 className="text-sm font-bold text-[var(--outline)] uppercase tracking-wider pb-4 border-b border-[var(--glass-border)]">Appearance</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wider">Logo URL</label>
-              <input type="url" value={config.logo_url || ''} onChange={e => update('logo_url', e.target.value)} className="glass-input" placeholder="https://..." />
+              <label className="block text-xs font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wider">Logo URL / Upload</label>
+              <div className="flex gap-2">
+                <input type="text" value={config.logo_url || ''} onChange={e => update('logo_url', e.target.value)} className="glass-input flex-1" placeholder="https://... or Base64" />
+                <label className="cursor-pointer bg-[var(--primary)] text-[var(--on-primary)] px-4 py-3 rounded-xl font-bold flex items-center justify-center text-sm shadow-lg hover:shadow-xl transition-all">
+                  Upload
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wider">Primary Color</label>

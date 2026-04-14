@@ -25,8 +25,9 @@ export default function LoginPage() {
       
       // Map specific IDs to their system emails
       const idMap: Record<string, string> = {
-        'superadmin': 'superadmin@system.com',
-        'city admin': 'cityadmin@system.com',
+        "superadmin": "mohammadhasan16114@gmail.com",
+        "mohammadhasan": "mohammadhasan16114@gmail.com",
+        "city admin": "cityadmin@system.com",
         'ws': 'ws@system.com',
         'staff': 'staff@system.com',
       };
