@@ -268,3 +268,25 @@ $$;
 CREATE TRIGGER trg_generate_ticket_id BEFORE INSERT ON public.complaints
 FOR EACH ROW WHEN (NEW.ticket_id IS NULL OR NEW.ticket_id = '') 
 EXECUTE FUNCTION public.generate_ticket_id();
+
+-- 4. Indexes for Performance
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_ward_id ON public.profiles(ward_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_department_id ON public.profiles(department_id);
+
+CREATE INDEX IF NOT EXISTS idx_complaints_citizen_id ON public.complaints(citizen_id);
+CREATE INDEX IF NOT EXISTS idx_complaints_category_id ON public.complaints(category_id);
+CREATE INDEX IF NOT EXISTS idx_complaints_ward_id ON public.complaints(ward_id);
+CREATE INDEX IF NOT EXISTS idx_complaints_department_id ON public.complaints(department_id);
+CREATE INDEX IF NOT EXISTS idx_complaints_assigned_to ON public.complaints(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_complaints_status ON public.complaints(status);
+CREATE INDEX IF NOT EXISTS idx_complaints_ticket_id ON public.complaints(ticket_id text_pattern_ops);
+
+CREATE INDEX IF NOT EXISTS idx_complaint_media_complaint_id ON public.complaint_media(complaint_id);
+CREATE INDEX IF NOT EXISTS idx_complaint_history_complaint_id ON public.complaint_status_history(complaint_id);
+CREATE INDEX IF NOT EXISTS idx_complaint_notes_complaint_id ON public.complaint_notes(complaint_id);
+CREATE INDEX IF NOT EXISTS idx_complaint_comments_complaint_id ON public.complaint_comments(complaint_id);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_escalations_complaint_id ON public.escalations(complaint_id);
+CREATE INDEX IF NOT EXISTS idx_sla_breaches_complaint_id ON public.sla_breaches(complaint_id);

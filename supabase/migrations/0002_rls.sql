@@ -25,25 +25,11 @@ ALTER TABLE public.sla_breaches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
--- Enable RLS on all tables
-ALTER TABLE public.wards ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaint_media ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaint_status_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaint_notes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaint_comments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.escalations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sla_breaches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.system_audit_log ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
-
 -- SUPER SIMPLE RLS: Everyone can read basic data. Admins can do anything. Citizens can manage their own data.
 -- 1. PROFILES
-CREATE POLICY "Profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Profiles are viewable by everyone" ON public.profiles FOR SELECT USING (
+    id = auth.uid() OR public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin')
+);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (id = auth.uid());
 CREATE POLICY "Admins have full access to profiles" ON public.profiles FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
 
@@ -59,19 +45,31 @@ CREATE POLICY "Admins can manage categories" ON public.categories FOR ALL USING 
 CREATE POLICY "Admins can manage settings" ON public.system_settings FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
 
 -- 3. COMPLAINTS & RELATED DATA
-CREATE POLICY "Complaints viewable by everyone" ON public.complaints FOR SELECT USING (true);
+CREATE POLICY "Complaints viewable by everyone" ON public.complaints FOR SELECT USING (
+    is_public = true OR
+    citizen_id = auth.uid() OR
+    public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin')
+);
 CREATE POLICY "Citizens can insert complaints" ON public.complaints FOR INSERT WITH CHECK (auth.uid() = citizen_id);
 CREATE POLICY "Citizens can update own complaints" ON public.complaints FOR UPDATE USING (auth.uid() = citizen_id);
 CREATE POLICY "Staff can update any complaint" ON public.complaints FOR UPDATE USING (public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin'));
 CREATE POLICY "Admins can insert/delete complaints" ON public.complaints FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
 
 -- Media
-CREATE POLICY "Media viewable by everyone" ON public.complaint_media FOR SELECT USING (true);
+CREATE POLICY "Media viewable by everyone" ON public.complaint_media FOR SELECT USING (
+    is_public = true OR
+    public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin') OR
+    EXISTS (SELECT 1 FROM public.complaints c WHERE c.id = complaint_id AND c.citizen_id = auth.uid())
+);
 CREATE POLICY "Anyone can upload media" ON public.complaint_media FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Staff can manage media" ON public.complaint_media FOR ALL USING (public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin'));
 
 -- Comments
-CREATE POLICY "Comments viewable by everyone" ON public.complaint_comments FOR SELECT USING (true);
+CREATE POLICY "Comments viewable by everyone" ON public.complaint_comments FOR SELECT USING (
+    is_public = true OR
+    public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin') OR
+    EXISTS (SELECT 1 FROM public.complaints c WHERE c.id = complaint_id AND c.citizen_id = auth.uid())
+);
 CREATE POLICY "Anyone can insert comment" ON public.complaint_comments FOR INSERT WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "Admins can manage comments" ON public.complaint_comments FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
 
