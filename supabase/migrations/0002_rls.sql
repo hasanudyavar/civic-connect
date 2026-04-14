@@ -31,7 +31,8 @@ CREATE POLICY "Profiles are viewable by everyone" ON public.profiles FOR SELECT 
     id = auth.uid() OR public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin')
 );
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (id = auth.uid());
-CREATE POLICY "Admins have full access to profiles" ON public.profiles FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
+CREATE POLICY "Super Admins have full access to profiles" ON public.profiles FOR ALL USING (public.get_my_role() = 'super_admin');
+CREATE POLICY "Taluk Admins can manage non-superadmin profiles" ON public.profiles FOR ALL USING (public.get_my_role() = 'taluk_admin' AND role != 'super_admin') WITH CHECK (public.get_my_role() = 'taluk_admin' AND role != 'super_admin');
 
 -- 2. MASTER DATA (Wards, Depts, Categories, Settings)
 CREATE POLICY "Master data viewable by everyone" ON public.wards FOR SELECT USING (true);

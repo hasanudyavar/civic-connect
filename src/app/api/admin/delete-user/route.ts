@@ -72,6 +72,16 @@ export async function DELETE(request: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    const { data: targetProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (targetProfile && targetProfile.role === 'super_admin') {
+       return NextResponse.json({ error: 'Super Admin identities cannot be deleted.' }, { status: 403 });
+    }
+
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
