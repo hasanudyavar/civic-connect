@@ -83,9 +83,74 @@
   --glass-blur: blur(20px);
 }
 
-/* Fallback override for dark mode - strict light mode required */
+/* ============================================================
+   THE OBSIDIAN ARCHITECT (Dark Mode)
+   Premium Ambient Layering and depth
+   ============================================================ */
 [data-theme="dark"] {
-  color-scheme: light;
+  color-scheme: dark;
+  
+  /* Deep Obsidian / Navy Backgrounds */
+  --background: #10131a;
+  --surface: #10131a;
+  --surface-bright: #363940;
+  --surface-container-lowest: #0b0e14;
+  --surface-container-low: #191c22;
+  --surface-container: #1d2026;
+  --surface-container-high: #272a31;
+  --surface-container-highest: #32353c;
+  --surface-dim: #10131a;
+  --surface-tint: #4edea3;
+  --surface-variant: #32353c;
+  
+  /* Luminous Emerald - Brighter for Dark Mode Contrast */
+  --primary: #4edea3;
+  --primary-container: #00855d;
+  --primary-fixed: #9ff4ca;
+  --primary-fixed-dim: #83d7ae;
+  --on-primary: #003824;
+  --on-primary-container: #91e5bc;
+  --on-primary-fixed: #002114;
+  --on-primary-fixed-variant: #005237;
+  
+  /* Brand Secondary */
+  --secondary: #b8c4ff;
+  --secondary-container: #2b4089;
+  --secondary-fixed: #dde1ff;
+  --secondary-fixed-dim: #b8c4ff;
+  --on-secondary: #002380;
+  --on-secondary-container: #d9e2ff;
+  
+  /* Tertiary / Error / Risk */
+  --tertiary: #ffb4a9;
+  --tertiary-container: #930005;
+  --on-tertiary: #690005;
+  --on-tertiary-container: #ffdad6;
+  
+  /* High-Contrast Editorial Text */
+  --on-surface: #e1e2eb;
+  --on-surface-variant: #8a8d91;
+  --on-background: #e1e2eb;
+  
+  /* Ambient Outlines */
+  --outline: #908fa0;
+  --outline-variant: #464554;
+  
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  /* The Glowing Primary Gradient */
+  --brand-gradient: linear-gradient(135deg, var(--primary) 0%, #00a473 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #6ffbbe 0%, var(--primary) 100%);
+
+  /* Ambient Glass and Lighting */
+  --ambient-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --ambient-shadow-hover: 0 14px 48px rgba(78, 222, 163, 0.08); /* Emerald glow */
+  --glass-bg: rgba(11, 14, 20, 0.8);
+  --glass-border: rgba(70, 69, 84, 0.3); /* outline-variant at 30% opacity */
+  --glass-blur: blur(24px);
 }
 
 /* ============================================================
