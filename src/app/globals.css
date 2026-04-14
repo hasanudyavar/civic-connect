@@ -1,106 +1,91 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
-   CIVIC CONNECT — EMERALD CIVIC / DIGITAL VERANDA
-   Light Theme Default (Material Design Tokens)
+   CIVIC CONNECT — THE TRANSPARENT MONOLITH
+   Strictly Light Theme Default (Stitch Design Tokens)
    ============================================================ */
 
-:root, [data-theme="light"] {
+:root {
   /* Tonal Surfaces - The Layering Principle */
   --background: #f8f9ff;
   --surface: #f8f9ff;
+  --surface-bright: #f8f9ff;
   --surface-container-lowest: #ffffff;
   --surface-container-low: #eef4ff;
   --surface-container: #e5eeff;
   --surface-container-high: #dfe9fa;
   --surface-container-highest: #d9e3f4;
-  --surface-tint: #006c4a;
+  --surface-dim: #d1dbec;
+  --surface-tint: #076c4b;
+  --surface-variant: #d9e3f4;
   
   /* Brand Emerald */
-  --primary: #006948;
-  --primary-container: #00855d;
+  --primary: #004f35;
+  --primary-container: #006948;
+  --primary-fixed: #9ff4ca;
+  --primary-fixed-dim: #83d7ae;
   --on-primary: #ffffff;
-  --on-primary-container: #f5fff7;
+  --on-primary-container: #91e5bc;
+  --on-primary-fixed: #002114;
+  --on-primary-fixed-variant: #005237;
   
-  /* Brand Secondary / Tertiary */
+  /* Brand Secondary */
   --secondary: #3755c3;
-  --secondary-container: #708cfd;
+  --secondary-container: #738fff;
+  --secondary-fixed: #dde1ff;
+  --secondary-fixed-dim: #b8c4ff;
   --on-secondary: #ffffff;
-  --on-secondary-container: #00217a;
+  --on-secondary-container: #002380;
+  --on-secondary-fixed: #001453;
+  --on-secondary-fixed-variant: #173baa;
   
-  --tertiary: #9b3e3b;
-  --tertiary-container: #ba5551;
+  --tertiary: #004f34;
+  --tertiary-container: #006947;
+  --tertiary-fixed: #6ffbbe;
+  --tertiary-fixed-dim: #4edea3;
   --on-tertiary: #ffffff;
-  --on-tertiary-container: #fffbff;
+  --on-tertiary-container: #5fecb0;
+  --on-tertiary-fixed: #002113;
+  --on-tertiary-fixed-variant: #005236;
   
   /* Text & Contrast */
   --on-surface: #121c28;
+  --on-surface-variant: #3f4943;
   --on-background: #121c28;
-  --on-surface-variant: #3d4a42;
-  --outline: #6d7a72;
-  --outline-variant: #bccac0; /* Ghost Border */
+  
+  /* Borders (Ghost Borders only) */
+  --outline: #6f7a72;
+  --outline-variant: #bec9c1;
   
   /* Semantic */
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
   --on-error-container: #93000a;
-
-  /* The Emerald Pulse Gradient */
-  --brand-gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #00855d 0%, #00a473 100%);
-
-  /* Ambient Shadows */
-  --ambient-shadow: 0 20px 40px rgba(18, 28, 40, 0.06);
-  --ambient-shadow-hover: 0 24px 48px rgba(18, 28, 40, 0.1);
   
-  /* Premium Glass Surfaces */
-  --glass-bg: rgba(248, 249, 255, 0.8);
-  --glass-border: rgba(188, 202, 192, 0.15); /* 15% opacity outline variant */
+  --inverse-surface: #27313e;
+  --inverse-on-surface: #eaf1ff;
+  --inverse-primary: #83d7ae;
+
+  /* The Civic Gradient */
+  --brand-gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  --brand-gradient-hover: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+
+  /* Ambient Shadows & Glass Layers */
+  --ambient-shadow: 0 4px 16px rgba(18, 28, 40, 0.07);
+  --ambient-shadow-hover: 0 8px 24px rgba(18, 28, 40, 0.1);
+  --glass-bg: rgba(248, 249, 255, 0.7);
+  --glass-border: rgba(190, 201, 193, 0.2); /* outline-variant at 20% opacity */
   --glass-blur: blur(20px);
 }
 
-/* ============================================================
-   DARK THEME (Fallback / Inherited if implemented later)
-   ============================================================ */
+/* Fallback override for dark mode - strict light mode required */
 [data-theme="dark"] {
-  --background: #0d1117;
-  --surface: #0d1117;
-  --surface-container-lowest: #010409;
-  --surface-container-low: #161b22;
-  --surface-container: #21262d;
-  --surface-container-high: #30363d;
-  --surface-container-highest: #484f58;
-  --surface-tint: #40cf95;
-  
-  --primary: #40cf95;
-  --primary-container: #005a3c;
-  --on-primary: #013723;
-  --on-primary-container: #8bf1c4;
-  
-  --secondary: #a6bdf6;
-  --secondary-container: #2b4089;
-  --on-secondary: #0f246b;
-  --on-secondary-container: #e1e8ff;
-  
-  --tertiary: #ffb4a9;
-  --tertiary-container: #930005;
-  --on-tertiary: #561e1a;
-  --on-tertiary-container: #ffdad5;
-  
-  --on-surface: #e6edf3;
-  --on-background: #e6edf3;
-  --on-surface-variant: #8b949e;
-  --outline: #8b949e;
-  --outline-variant: #30363d;
-  
-  --glass-bg: rgba(22, 27, 34, 0.8);
-  --glass-border: rgba(139, 148, 158, 0.15);
+  color-scheme: light;
 }
 
 /* ============================================================
@@ -130,17 +115,11 @@ body {
 }
 
 /* Typography Hierarchy - Editorial Authority */
-h1 { font-family: 'Inter', sans-serif; font-size: 3.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
-h2 { font-family: 'Inter', sans-serif; font-size: 1.75rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
-h3 { font-family: 'Inter', sans-serif; font-size: 1.375rem; font-weight: 600; line-height: 1.3; }
+h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 3.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--on-surface); }
+h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.75rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; color: var(--on-surface); }
+h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.375rem; font-weight: 600; line-height: 1.3; color: var(--on-surface); }
 p { font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.6; color: var(--on-surface-variant); }
-label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; color: var(--on-surface-variant); }
-
-/* Note: For Kannada scripts, ensure a line-height multiplier of 1.5x */
-.font-kannada {
-  font-family: 'Noto Sans Kannada', sans-serif;
-  line-height: 1.5;
-}
+label { font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500; color: var(--on-surface-variant); }
 
 /* ============================================================
    SCROLLBAR
@@ -151,24 +130,22 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
 ::-webkit-scrollbar-thumb:hover { background: var(--outline); }
 
 /* ============================================================
-   GLASS COMPONENTS & CONTAINERS
+   CONTAINERS & GHOST BORDERS
    ============================================================ */
-/* The No-Line Rule: Borders are prohibited for sectioning. */
-/* Service Card */
+/* The No-Line Rule: Borders are prohibited for sectioning. Use background shifts. */
 .glass-card, .card {
-  background: var(--surface-container);
-  border-radius: 16px; /* 1rem for Service Cards */
-  border: 1px solid var(--glass-border); /* 15% opacity ghost border for accessibility only */
-  box-shadow: var(--ambient-shadow);
+  background: var(--surface-container-lowest);
+  border-radius: 24px; /* xl radius for parent containers per spec */
+  border: 1px solid var(--glass-border); /* Ghost Border */
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
 
 .glass-card:hover, .card:hover {
-  background: var(--surface-container-highest); /* Shift background for depth */
-  box-shadow: var(--ambient-shadow-hover);
-  transform: translateY(-4px);
+  background: var(--surface-container-lowest); 
+  box-shadow: var(--ambient-shadow);
+  transform: translateY(-2px);
 }
 
 .glass-nav {
@@ -181,15 +158,14 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
 /* ============================================================
    FORMS & INPUTS
    ============================================================ */
-/* Bottom-only focus indicator using primary emerald */
 .glass-input {
   width: 100%;
-  padding: 14px 18px;
-  background: var(--surface-container-low);
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 8px 8px 0 0; /* Boxed look avoided, bottom focus */
+  padding: 16px;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--glass-border); /* Ghost Border */
+  border-radius: 12px;
   color: var(--on-surface);
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   outline: none;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -198,15 +174,15 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
 .glass-input::placeholder { color: var(--outline); font-weight: 400; }
 
 .glass-input:focus {
-  background: var(--surface-container);
-  border-bottom: 2px solid var(--primary);
+  border-color: var(--secondary);
+  background: var(--surface-container-lowest);
 }
 
 .glass-select {
   @apply glass-input;
   appearance: none;
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23121c28' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f4943' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -216,7 +192,6 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
 /* ============================================================
    PREMIUM BUTTONS
    ============================================================ */
-/* 8px corner radius is the new default */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -228,17 +203,16 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 1rem;
-  border-radius: 8px; /* The Interaction Anchors */
+  border-radius: 16px; /* lg radius for nested children */
   border: none;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 8px 20px -6px rgba(0, 105, 72, 0.4); 
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   background: var(--brand-gradient-hover);
-  box-shadow: 0 12px 28px -6px rgba(0, 105, 72, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 79, 53, 0.2); 
 }
 
 .btn-secondary {
@@ -247,106 +221,74 @@ label { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; 
   justify-content: center;
   gap: 10px;
   padding: 14px 28px;
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--glass-border);
+  color: var(--on-surface);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: none; /* No border for secondary as per spec */
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-secondary:hover {
-  background: #8099ff; /* Brighter container */
+  background: var(--surface-container-low);
   transform: translateY(-2px);
 }
 
-.btn-tertiary, .btn-ghost {
+.btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 1rem; /* High padding spacing-4 */
-  background: transparent;
-  color: var(--primary); /* Pure text with primary color */
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--on-surface);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
-.btn-ghost:hover, .btn-tertiary:hover {
-  background: var(--surface-container);
-}
-
-.btn-danger {
-  @apply btn-primary;
-  background: var(--error);
-  color: var(--on-error);
-  box-shadow: 0 8px 20px -6px rgba(186, 26, 26, 0.4);
-}
-.btn-danger:hover {
-  background: #93000a;
-  box-shadow: 0 12px 28px -6px rgba(186, 26, 26, 0.6);
+.btn-icon:hover {
+  background: var(--surface-container-low);
+  transform: translateY(-2px);
 }
 
 /* ============================================================
-   BADGES & STATUS
+   STATUS BADGES / PILLS
    ============================================================ */
-.badge {
+.status-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
-  font-size: 0.75rem; /* label-md */
-  font-weight: 500;
-  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-.badge-new { background: var(--secondary-container); color: var(--on-secondary-container); }
-.badge-assigned { background: #ffe082; color: #5c4000; }
-.badge-in-progress { background: #b3e5fc; color: #004d40; }
-.badge-resolved { background: var(--primary-container); color: var(--on-primary); }
-.badge-closed { background: var(--surface-container-high); color: var(--on-surface-variant); }
-.badge-escalated {
+.status-pill.success {
+  background: var(--on-primary-container);
+  color: var(--on-primary-fixed-variant);
+}
+
+.status-pill.warning {
+  background: var(--secondary-fixed-dim);
+  color: var(--on-secondary-fixed-variant);
+}
+
+.status-pill.danger {
   background: var(--error-container);
   color: var(--on-error-container);
-  animation: pulse-escalated 2s ease-in-out infinite;
 }
 
-@keyframes pulse-escalated {
-  0%, 100% { box-shadow: 0 0 12px rgba(186, 26, 26, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(186, 26, 26, 0.6); }
-}
-
-/* ANIMATION HELPERS */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .desktop-sidebar { display: none; }
-  .main-content { padding-bottom: 96px; }
-  h1 { font-size: 2.5rem; }
-}
-
-@media (min-width: 769px) {
-  .mobile-bottom-nav { display: none; }
-}
-
-/* Print */
-@media print {
-  body { background: white !important; color: black !important; }
-  .glass-card, .btn-primary { background: white !important; box-shadow: none !important; color: black !important; border: 1px solid #ccc !important; }
-  .no-print { display: none !important; }
-}
+/* ============================================================
+   PAGE LAYOUT TRANSITIONS
+   ============================================================ */
+.page-transition-enter { opacity: 0; transform: translateY(10px); }
+.page-transition-enter-active { opacity: 1; transform: translateY(0); transition: opacity 400ms, transform 400ms; transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }

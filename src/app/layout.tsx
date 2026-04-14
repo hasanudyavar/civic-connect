@@ -1,6 +1,19 @@
 import type { Metadata } from 'next';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Bhatkal Civic Connect — Smart Civic Grievance Platform',
@@ -20,17 +33,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning className={`${inter.variable} ${jakarta.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#050B14" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('civic-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
-          }}
-        />
+        <meta name="theme-color" content="#f8f9ff" />
       </head>
       <body>
         {children}
@@ -40,7 +48,7 @@ export default function RootLayout({
           closeButton
           toastOptions={{
             style: {
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-inter)",
             },
           }}
         />

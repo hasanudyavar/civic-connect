@@ -36,7 +36,9 @@ const config: Config = {
         "on-error": "var(--on-error)",
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        heading: ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        inter: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-emerald': 'var(--brand-gradient)',
