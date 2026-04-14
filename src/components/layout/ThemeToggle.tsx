@@ -9,10 +9,14 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('civic-theme') as 'dark' | 'light' | null;
-    const initial = saved || 'dark';
-    setTheme(initial);
-    document.documentElement.setAttribute('data-theme', initial);
+    const syncTheme = () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      setTheme(current as 'dark' | 'light');
+    };
+    syncTheme(); // initial
+
+    window.addEventListener('themechange', syncTheme);
+    return () => window.removeEventListener('themechange', syncTheme);
   }, []);
 
   const toggle = () => {
@@ -21,6 +25,7 @@ export function ThemeToggle() {
     localStorage.setItem('civic-theme', next);
     document.documentElement.classList.add('theme-transition');
     document.documentElement.setAttribute('data-theme', next);
+    window.dispatchEvent(new Event('themechange'));
     setTimeout(() => document.documentElement.classList.remove('theme-transition'), 400);
   };
 

@@ -69,8 +69,38 @@
    DARK THEME (Fallback / Inherited if implemented later)
    ============================================================ */
 [data-theme="dark"] {
-  /* Defaulting to the same for now to force the light Emerald Civic theme,
-     or we can provide inverted tokens if necessary, but the spec focuses on Light. */
+  --background: #0d1117;
+  --surface: #0d1117;
+  --surface-container-lowest: #010409;
+  --surface-container-low: #161b22;
+  --surface-container: #21262d;
+  --surface-container-high: #30363d;
+  --surface-container-highest: #484f58;
+  --surface-tint: #40cf95;
+  
+  --primary: #40cf95;
+  --primary-container: #005a3c;
+  --on-primary: #013723;
+  --on-primary-container: #8bf1c4;
+  
+  --secondary: #a6bdf6;
+  --secondary-container: #2b4089;
+  --on-secondary: #0f246b;
+  --on-secondary-container: #e1e8ff;
+  
+  --tertiary: #ffb4a9;
+  --tertiary-container: #930005;
+  --on-tertiary: #561e1a;
+  --on-tertiary-container: #ffdad5;
+  
+  --on-surface: #e6edf3;
+  --on-background: #e6edf3;
+  --on-surface-variant: #8b949e;
+  --outline: #8b949e;
+  --outline-variant: #30363d;
+  
+  --glass-bg: rgba(22, 27, 34, 0.8);
+  --glass-border: rgba(139, 148, 158, 0.15);
 }
 
 /* ============================================================

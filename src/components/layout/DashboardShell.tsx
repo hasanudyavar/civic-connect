@@ -188,10 +188,11 @@ function MobileHeader() {
 
   const toggleTheme = () => {
     const html = document.documentElement;
-    const current = html.getAttribute('data-theme');
+    const current = html.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('civic-theme', next);
+    window.dispatchEvent(new Event('themechange'));
   };
 
   return (
@@ -259,15 +260,17 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    setTheme(current);
+    const syncTheme = () => setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+    syncTheme();
+    window.addEventListener('themechange', syncTheme);
+    return () => window.removeEventListener('themechange', syncTheme);
   }, []);
 
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('civic-theme', next);
-    setTheme(next);
+    window.dispatchEvent(new Event('themechange'));
   };
 
   return (
