@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const client = new pg.Client({
-  host: 'db.nhypokrikqsicyuzspjj.supabase.co',
+  host: 'db.lbjkvoimjdspvmesmgmm.supabase.co',
   port: 5432, database: 'postgres', user: 'postgres',
   password: 'CivicConnectBhatkal140326',
   ssl: { rejectUnauthorized: false },
