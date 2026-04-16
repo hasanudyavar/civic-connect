@@ -89,7 +89,7 @@ function Sidebar() {
   const webName = appConfig.web_name || 'Civic Connect';
 
   return (
-    <aside className={`desktop-sidebar fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-[var(--surface-container-low)] border-r border-[var(--glass-border)] transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+    <aside className={`desktop-sidebar hidden md:flex fixed left-0 top-0 bottom-0 z-40 flex-col bg-[var(--surface-container-low)] border-r border-[var(--glass-border)] transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}>
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-[var(--glass-border)]">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(0,105,72,0.3)]">
@@ -155,7 +155,7 @@ function MobileBottomNav() {
   const mobileItems = getCitizenMobileNav();
 
   return (
-    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface-container-low)]/90 backdrop-blur-xl border-t border-[var(--glass-border)] px-2 pb-[env(safe-area-inset-bottom)]">
+    <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface-container-low)]/90 backdrop-blur-xl border-t border-[var(--glass-border)] px-2 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16">
         {mobileItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');

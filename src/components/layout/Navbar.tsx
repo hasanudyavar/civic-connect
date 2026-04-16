@@ -18,7 +18,7 @@ export function Navbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-card !rounded-none !border-x-0 !border-t-0 bg-opacity-80 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--glass-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center gap-3 group relative">
@@ -92,7 +92,7 @@ export function Navbar() {
                 className={cn(
                   "block px-5 py-3.5 text-base font-medium rounded-xl transition-all",
                   pathname === link.href
-                    ? "bg-[var(--surface-container-highest)] text-[var(--primary)] border border-[var(--ring)]"
+                    ? "bg-[var(--surface-container-highest)] text-[var(--primary)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
                     : "text-[var(--on-surface-variant)] hover:text-[var(--on-surface)] hover:bg-[var(--glass-bg)]"
                 )}
                 onClick={() => setMenuOpen(false)}
