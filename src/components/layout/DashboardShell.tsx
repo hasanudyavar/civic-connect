@@ -9,7 +9,7 @@ import {
   LayoutDashboard, FileText, PlusCircle, Bell, User, Settings,
   Users, BarChart3, Shield, Building2, ChevronLeft, ChevronRight,
   LogOut, FolderKanban, Eye, Palette, ClipboardList, Loader2,
-  Home, Search, Menu, X, Sun, Moon
+  Home, Search, Menu, X, Sun, Moon, MapPin, Tags
 } from 'lucide-react';
 
 interface NavItem {
@@ -33,24 +33,21 @@ function getNavItems(role: string): NavItem[] {
       return [
         { href: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/staff/complaints', label: 'Assigned Work', icon: FolderKanban },
-        { href: '/staff/profile', label: 'Profile', icon: User },
       ];
     case 'ward_supervisor':
       return [
         { href: '/supervisor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/supervisor/complaints', label: 'Ward Complaints', icon: FileText },
-        { href: '/supervisor/staff', label: 'Ward Staff', icon: Users },
-        { href: '/supervisor/profile', label: 'Profile', icon: User },
       ];
     case 'taluk_admin':
       return [
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/complaints', label: 'All Complaints', icon: FileText },
-        { href: '/admin/users/staff', label: 'Manage Staff', icon: Users },
-        { href: '/admin/users/supervisors', label: 'Supervisors', icon: Eye },
-        { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+        { href: '/admin/users', label: 'Manage Identity Grid', icon: Users },
+        { href: '/admin/departments', label: 'Departments', icon: Building2 },
+        { href: '/admin/wards', label: 'Wards', icon: MapPin },
+        { href: '/admin/categories', label: 'Categories', icon: Tags },
         { href: '/admin/info-requests', label: 'Info Requests', icon: Shield },
-        { href: '/admin/profile', label: 'Profile', icon: User },
       ];
     case 'super_admin':
       return [
