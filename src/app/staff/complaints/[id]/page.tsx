@@ -131,10 +131,76 @@ export default function StaffComplaintDetail() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-sm font-bold text-[var(--outline)] uppercase tracking-wider mb-3">Description</h2>
-              <p className="text-[var(--on-surface)] leading-relaxed">{complaint.description}</p>
+            {/* Description & AI Triage */}
+            <div className="glass-card p-6 rounded-2xl relative overflow-hidden group">
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <h2 className="text-sm font-bold text-[var(--outline)] uppercase tracking-wider">Description</h2>
+                {aiResult && !aiResult.includes('analysis') ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] bg-[rgba(0,105,72,0.1)] px-2 py-1 rounded border border-[rgba(0,105,72,0.2)]">
+                    <Sparkles className="w-3 h-3" /> Triaged by Gemini
+                  </span>
+                ) : (
+                  <button 
+                    onClick={async () => {
+                      setAnalyzing(true);
+                      try {
+                        const res = await fetch('/api/ai/triage', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: complaint.description, category: complaint.category?.name_en, priority: complaint.priority })
+                        });
+                        const data = await res.json();
+                        if (data.triage) setAiResult(JSON.stringify(data.triage));
+                      } catch {
+                        toast.error('Triage failed');
+                      } finally { setAnalyzing(false); }
+                    }}
+                    disabled={analyzing}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-[var(--on-surface-variant)] hover:text-[var(--primary)] transition-colors"
+                  >
+                    {analyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    Smart Triage
+                  </button>
+                )}
+              </div>
+              
+              <p className="text-[var(--on-surface)] leading-relaxed relative z-10">{complaint.description}</p>
+              
+              {/* Intelligence Brief */}
+              {aiResult && !aiResult.includes('analysis') && (() => {
+                try {
+                  const triage = JSON.parse(aiResult);
+                  return (
+                    <div className="mt-6 pt-6 border-t border-[rgba(0,105,72,0.2)] animate-fade-in-up">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)] mix-blend-screen filter blur-[50px] opacity-10 pointer-events-none" />
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] mb-3 flex items-center gap-2">
+                        Intelligence Brief
+                        <div className="h-px flex-1 bg-gradient-to-r from-[var(--primary)] to-transparent opacity-30" />
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-[var(--outline)] uppercase tracking-wider mb-1">TL;DR Summary</p>
+                          <p className="text-sm font-medium text-[var(--on-surface)]">{triage.summary}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-3 rounded-xl bg-[var(--surface-container-highest)] border border-[var(--glass-border)]">
+                            <p className="text-[10px] font-bold text-[var(--outline)] uppercase tracking-wider mb-1">AI Severity</p>
+                            <p className={`text-xs font-bold uppercase tracking-widest ${triage.severity === 'CRITICAL' || triage.severity === 'HIGH' ? 'text-[var(--danger)]' : 'text-[var(--warning)]'}`}>
+                              {triage.severity}
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-xl bg-[var(--surface-container-highest)] border border-[var(--glass-border)]">
+                            <p className="text-[10px] font-bold text-[var(--outline)] uppercase tracking-wider mb-1">Action Engine</p>
+                            <p className="text-xs font-bold text-[var(--on-surface-variant)]">{triage.actionable_insight}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } catch { return null; }
+              })()}
             </div>
 
             {/* Status Update */}

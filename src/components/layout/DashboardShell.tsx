@@ -33,11 +33,13 @@ function getNavItems(role: string): NavItem[] {
       return [
         { href: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/staff/complaints', label: 'Assigned Work', icon: FolderKanban },
+        { href: '/staff/profile', label: 'Profile', icon: User },
       ];
     case 'ward_supervisor':
       return [
         { href: '/supervisor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/supervisor/complaints', label: 'Ward Complaints', icon: FileText },
+        { href: '/supervisor/profile', label: 'Profile', icon: User },
       ];
     case 'taluk_admin':
       return [
@@ -48,6 +50,7 @@ function getNavItems(role: string): NavItem[] {
         { href: '/admin/wards', label: 'Wards', icon: MapPin },
         { href: '/admin/categories', label: 'Categories', icon: Tags },
         { href: '/admin/info-requests', label: 'Info Requests', icon: Shield },
+        { href: '/admin/profile', label: 'Profile', icon: User },
       ];
     case 'super_admin':
       return [
