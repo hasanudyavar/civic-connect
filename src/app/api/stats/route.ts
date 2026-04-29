@@ -9,8 +9,10 @@ export async function GET() {
     const { count: total } = await supabase.from('complaints').select('*', { count: 'exact', head: true });
     const { count: resolved } = await supabase.from('complaints').select('*', { count: 'exact', head: true }).in('status', ['RESOLVED', 'CLOSED']);
     const { count: active } = await supabase.from('complaints').select('*', { count: 'exact', head: true }).not('status', 'in', '("RESOLVED","CLOSED")');
+    const { count: breached } = await supabase.from('complaints').select('*', { count: 'exact', head: true }).eq('resolution_sla_breached', true);
 
     const resolvedPct = total ? Math.round(((resolved || 0) / total) * 100) : 0;
+    const slaCompliance = total ? Math.round(((total - (breached || 0)) / total) * 100) : 100;
 
     return NextResponse.json({
       success: true,
@@ -19,7 +21,7 @@ export async function GET() {
         resolved: resolved || 0,
         active: active || 0,
         resolved_percentage: resolvedPct,
-        sla_compliance: 85,
+        sla_compliance: slaCompliance,
       },
     });
   } catch {

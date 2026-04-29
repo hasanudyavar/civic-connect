@@ -23,13 +23,17 @@ export default function LoginPage() {
     try {
       let loginEmail = email.trim().toLowerCase();
       
-      // Map specific IDs to their system emails
+      // Map shortcut IDs to their system emails
       const idMap: Record<string, string> = {
         "superadmin": "mohammadhasan16114@gmail.com",
         "mohammadhasan": "mohammadhasan16114@gmail.com",
-        "city admin": "cityadmin@system.com",
-        'ws': 'ws@system.com',
-        'staff': 'staff@system.com',
+        "cityadmin": "cityadmin@gmail.com",
+        "city admin": "cityadmin@gmail.com",
+        "wardsupervisor": "wardsupervisor@gmail.com",
+        "ws": "wardsupervisor@gmail.com",
+        "departmentstaff": "departmentstaff@gmail.com",
+        "staff": "departmentstaff@gmail.com",
+        "citizen": "mohammedhasanudyavar1@gmail.com",
       };
       
       if (idMap[loginEmail]) {

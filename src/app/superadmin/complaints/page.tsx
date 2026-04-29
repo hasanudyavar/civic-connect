@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Complaint } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { formatRelative, exportToCSV } from '@/lib/utils';
-import { Loader2, Search, Download } from 'lucide-react';
+import { Loader2, Search, Download, ChevronRight } from 'lucide-react';
 
 export default function SuperAdminComplaintsPage() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -48,14 +49,17 @@ export default function SuperAdminComplaintsPage() {
           {filtered.map(c => {
             const cfg = STATUS_CONFIG[c.status];
             return (
-              <div key={c.id} className="glass-card p-4 flex items-center justify-between gap-3">
+              <Link key={c.id} href={`/superadmin/complaints/${c.id}`} className="glass-card p-4 flex items-center justify-between gap-3 group cursor-pointer hover:border-[var(--primary)]/30">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className={`badge ${cfg?.bg} text-[10px] flex-shrink-0`}>{cfg?.label}</span>
                   <span className="text-xs font-mono text-[var(--outline)]">{c.ticket_id}</span>
                   <span className="text-sm font-bold truncate">{c.title}</span>
                 </div>
-                <span className="text-xs text-[var(--outline)]">{formatRelative(c.created_at)}</span>
-              </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className="text-xs text-[var(--outline)] hidden sm:block">{formatRelative(c.created_at)}</span>
+                  <ChevronRight className="w-4 h-4 text-[var(--outline)]" />
+                </div>
+              </Link>
             );
           })}
           {filtered.length === 0 && <div className="glass-card p-8 text-center text-[var(--outline)]">No complaints</div>}

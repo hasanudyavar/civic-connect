@@ -20,7 +20,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com https://*.google.com https://*.googleusercontent.com",
-              "connect-src 'self' https://*.supabase.co https://maps.googleapis.com https://api.anthropic.com https://openrouter.ai",
+              "connect-src 'self' https://*.supabase.co https://maps.googleapis.com https://generativelanguage.googleapis.com",
               "frame-src https://maps.googleapis.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
@@ -48,6 +48,8 @@ const nextConfig = {
       },
     ],
   },
+  // Hide framework fingerprint
+  poweredByHeader: false,
 };
 
 export default nextConfig;

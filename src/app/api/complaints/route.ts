@@ -22,13 +22,13 @@ export async function POST(request: NextRequest) {
 
     // Get category SLA config
     const { data: catConfig } = await supabase
-      .from('category_mappings')
-      .select('department_id, sla_hours')
-      .eq('category', category)
+      .from('categories')
+      .select('department_id')
+      .eq('id', category)
       .single();
 
     // Calculate SLA deadline
-    const slaHours = catConfig?.sla_hours || 72; // default 72h
+    const slaHours = 72; // default 72h
     const slaDeadline = new Date(Date.now() + slaHours * 60 * 60 * 1000).toISOString();
 
     // Insert complaint
@@ -58,21 +58,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create initial timeline entry
-    await supabase.from('complaint_timeline').insert({
+    await supabase.from('complaint_status_history').insert({
       complaint_id: complaint.id,
-      status: 'NEW',
+      old_status: null,
+      new_status: 'NEW',
       changed_by: user.id,
       note: 'Complaint submitted',
-      is_public: true,
     });
 
     // Audit log
-    await supabase.from('audit_logs').insert({
+    await supabase.from('system_audit_log').insert({
       actor_id: user.id,
       action: 'complaint_created',
       entity_type: 'complaint',
       entity_id: complaint.id,
-      new_value: { category, title },
+      new_values: { category, title },
     });
 
     return NextResponse.json({

@@ -19,8 +19,17 @@ export default function StaffComplaintsPage() {
       const supabase = createBrowserSupabaseClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from('complaints').select('*, category:categories(name_en, color), ward:wards(name)')
-        .eq('assigned_to', user.id).order('created_at', { ascending: false });
+      // Get staff's department
+      const { data: profile } = await supabase.from('profiles').select('department_id').eq('id', user.id).single();
+      // Show all complaints in this department (assigned to this staff OR in their department)
+      let query = supabase.from('complaints').select('*, category:categories(name_en, color), ward:wards(name)')
+        .order('created_at', { ascending: false });
+      if (profile?.department_id) {
+        query = query.or(`assigned_to.eq.${user.id},department_id.eq.${profile.department_id}`);
+      } else {
+        query = query.eq('assigned_to', user.id);
+      }
+      const { data } = await query;
       setComplaints((data || []) as unknown as Complaint[]);
       setLoading(false);
     }
