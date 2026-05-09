@@ -21,7 +21,8 @@ export default function SuperAdminComplaintDetail() {
   const [staffList, setStaffList] = useState<{ id: string; full_name: string }[]>([]);
   const [selectedStaff, setSelectedStaff] = useState('');
 
-  useEffect(() => { loadData(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadData(); }, [id]);
 
   async function loadData() {
     const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');

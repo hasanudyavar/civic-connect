@@ -53,7 +53,7 @@ Output ONLY valid JSON without any markdown formatting, code blocks, or extra te
     try {
       const triage = JSON.parse(resultText);
       return NextResponse.json({ triage });
-    } catch (parseErr) {
+    } catch {
       console.error('Failed to parse AI output:', resultText);
       return NextResponse.json({ 
         triage: { 

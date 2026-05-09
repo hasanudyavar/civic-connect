@@ -130,6 +130,7 @@ export default function BrandingPage() {
           <h2 className="text-sm font-bold text-[var(--outline)] uppercase tracking-wider mb-4 flex items-center gap-2"><Eye className="w-4 h-4" /> Preview</h2>
           <div className="p-4 rounded-xl bg-[var(--background)] border border-[var(--glass-border)]">
             <div className="flex items-center gap-3 mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               {config.logo_url ? <img src={config.logo_url} alt="Logo" className="w-8 h-8 rounded-lg object-cover" /> : <div className="w-8 h-8 rounded-lg" style={{ background: config.primary_color || '#F5A623' }} />}
               <span className="text-sm font-bold">{config.web_name || 'Civic Connect'}</span>
               <span className="text-xs text-[var(--outline)]">{config.city_name || 'Bhatkal'} Taluk</span>

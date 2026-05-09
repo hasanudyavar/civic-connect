@@ -342,6 +342,7 @@ export default function NewComplaintPage() {
                 <div className="flex gap-3 flex-wrap">
                   {images.map((img, i) => (
                     <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-[var(--glass-border)]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover" />
                       <button onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-[var(--danger)] text-white flex items-center justify-center">
                         <X className="w-3 h-3" />
