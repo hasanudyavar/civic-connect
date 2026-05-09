@@ -1,8 +1,7 @@
 "use client";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import LeafletFix from "./LeafletFix";
-import { BHATKAL_CENTER } from "@/lib/constants";
-import { STATUS_CONFIG } from "@/lib/constants";
+
 import "leaflet/dist/leaflet.css";
 
 interface Complaint {

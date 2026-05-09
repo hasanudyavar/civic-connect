@@ -7,8 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/auth-context';
 import { ROLE_LABELS } from '@/lib/constants';
 import {
   LayoutDashboard, FileText, PlusCircle, Bell, User, Settings,
-  Users, BarChart3, Shield, Building2, ChevronLeft, ChevronRight,
-  LogOut, FolderKanban, Eye, Palette, ClipboardList, Loader2,
+  Users, Shield, Building2, ChevronLeft, ChevronRight,
+  LogOut, FolderKanban, Palette, ClipboardList, Loader2,
   Home, Search, Menu, X, Sun, Moon, MapPin, Tags
 } from 'lucide-react';
 
