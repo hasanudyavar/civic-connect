@@ -34,6 +34,26 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 CREATE POLICY "Super Admins have full access to profiles" ON public.profiles FOR ALL USING (public.get_my_role() = 'super_admin');
 CREATE POLICY "Taluk Admins can manage non-superadmin profiles" ON public.profiles FOR ALL USING (public.get_my_role() = 'taluk_admin' AND role != 'super_admin') WITH CHECK (public.get_my_role() = 'taluk_admin' AND role != 'super_admin');
 
+-- 1a. SECURE PROFILE UPDATES (Prevent Privilege Escalation)
+CREATE OR REPLACE FUNCTION public.protect_profile_sensitive_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If not an admin, keep the old sensitive values
+  IF public.get_my_role() NOT IN ('taluk_admin', 'super_admin') THEN
+    NEW.role = OLD.role;
+    NEW.is_active = OLD.is_active;
+    NEW.department_id = OLD.department_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS ensure_profile_security ON public.profiles;
+CREATE TRIGGER ensure_profile_security
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.protect_profile_sensitive_fields();
+
 -- 2. MASTER DATA (Wards, Depts, Categories, Settings)
 CREATE POLICY "Master data viewable by everyone" ON public.wards FOR SELECT USING (true);
 CREATE POLICY "Master data viewable by everyone" ON public.departments FOR SELECT USING (true);
@@ -87,7 +107,7 @@ CREATE POLICY "Admins can manage notes" ON public.complaint_notes FOR ALL USING 
 -- Notifications (Own only + Admins)
 CREATE POLICY "View own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Update own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "System can insert" ON public.notifications FOR INSERT WITH CHECK (true);
+CREATE POLICY "Staff and system can insert" ON public.notifications FOR INSERT WITH CHECK (public.get_my_role() IN ('dept_staff', 'ward_supervisor', 'taluk_admin', 'super_admin'));
 CREATE POLICY "Admins can manage notifications" ON public.notifications FOR ALL USING (public.get_my_role() IN ('taluk_admin', 'super_admin'));
 
 -- Escalations & SLAs (Staff only)
