@@ -302,3 +302,13 @@ export interface MapMarker {
   ticket_id?: string;
   created_at?: string;
 }
+
+export interface ComplaintWithLocation {
+  id: string;
+  title: string;
+  status: string;
+  ward_name?: string;
+  ticket_id?: string;
+  latitude: number;
+  longitude: number;
+}

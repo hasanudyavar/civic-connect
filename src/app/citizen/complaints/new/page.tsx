@@ -10,6 +10,7 @@ import { validateImageFile } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, MapPin, Upload, X, Sparkles, Loader2, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import LocationPicker from '@/components/map/LocationPicker';
 
 const STEPS = ['Category', 'Location', 'Details', 'Review'];
 
@@ -29,8 +30,7 @@ export default function NewComplaintPage() {
   const [description, setDescription] = useState('');
   const [enhancedDescription, setEnhancedDescription] = useState<string | null>(null);
   const [originalDescription, setOriginalDescription] = useState<string | null>(null);
-  const [lat, setLat] = useState(BHATKAL_CENTER.lat);
-  const [lng, setLng] = useState(BHATKAL_CENTER.lng);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
   const [address, setAddress] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [priority, setPriority] = useState<'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL'>('NORMAL');
@@ -160,8 +160,8 @@ export default function NewComplaintPage() {
           title: title.trim(),
           description: description.trim(),
           ai_description: enhancedDescription,
-          latitude: lat,
-          longitude: lng,
+          latitude: location?.lat ?? BHATKAL_CENTER.lat,
+          longitude: location?.lng ?? BHATKAL_CENTER.lng,
           address: address || null,
           priority,
           status: 'NEW',
@@ -273,23 +273,24 @@ export default function NewComplaintPage() {
           {step === 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold mb-4">Pin Location</h2>
-              <div className="rounded-xl overflow-hidden border border-[var(--glass-border)] h-[300px] bg-[var(--glass-bg)] flex items-center justify-center">
-                <div className="text-center p-6">
-                  <MapPin className="w-12 h-12 text-[var(--primary)] mx-auto mb-3" />
-                  <p className="text-sm font-bold text-[var(--on-surface)] mb-1">Google Maps</p>
-                  <p className="text-xs text-[var(--outline)] mb-3">Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--outline)] uppercase">Latitude</label>
-                      <input type="number" step="0.0001" value={lat} onChange={e => setLat(Number(e.target.value))} className="glass-input !py-2 !text-xs" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-[var(--outline)] uppercase">Longitude</label>
-                      <input type="number" step="0.0001" value={lng} onChange={e => setLng(Number(e.target.value))} className="glass-input !py-2 !text-xs" />
-                    </div>
+              <LocationPicker value={location} onChange={setLocation} />
+              {location && (
+                <div className="flex gap-3 mt-2">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-bold text-[var(--outline)] uppercase">Latitude</label>
+                    <p className="text-sm font-mono text-[var(--on-surface)]">{location.lat.toFixed(6)}</p>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[10px] font-bold text-[var(--outline)] uppercase">Longitude</label>
+                    <p className="text-sm font-mono text-[var(--on-surface)]">{location.lng.toFixed(6)}</p>
                   </div>
                 </div>
-              </div>
+              )}
+              {!location && (
+                <p className="text-xs text-[var(--outline)] mt-2 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Click on the map to pin your complaint location
+                </p>
+              )}
               <div>
                 <label className="block text-sm font-bold text-[var(--on-surface-variant)] mb-2">Address</label>
                 <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter address or landmark" className="glass-input" />

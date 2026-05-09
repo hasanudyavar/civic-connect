@@ -39,6 +39,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#f8f9ff" />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('civic-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
