@@ -5,6 +5,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Department } from '@/lib/types';
 import { Plus, Pencil, X, Loader2, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { validatePhone } from '@/lib/utils';
 
 export default function AdminDepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -30,17 +31,19 @@ export default function AdminDepartmentsPage() {
 
   const handleSave = async () => {
     if (!form.name) { toast.error('Designation identifier required'); return; }
+    const phoneV = validatePhone(form.contact_phone);
+    if (!phoneV.valid) { toast.error(phoneV.error!); return; }
     try {
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
       const supabase = createBrowserSupabaseClient();
 
       if (editing) {
-        const { error } = await supabase.from('departments').update({ name: form.name, description: form.description || null, contact_email: form.contact_email || null, contact_phone: form.contact_phone || null }).eq('id', editing.id);
+        const { error } = await supabase.from('departments').update({ name: form.name, description: form.description || null, contact_email: form.contact_email || null, contact_phone: phoneV.formatted || null }).eq('id', editing.id);
         if (error) { toast.error(error.message); return; }
         setDepartments(prev => prev.map(d => d.id === editing.id ? { ...d, ...form } : d));
         toast.success('Department parameters updated');
       } else {
-        const { data, error } = await supabase.from('departments').insert({ name: form.name, description: form.description || null, contact_email: form.contact_email || null, contact_phone: form.contact_phone || null }).select().single();
+        const { data, error } = await supabase.from('departments').insert({ name: form.name, description: form.description || null, contact_email: form.contact_email || null, contact_phone: phoneV.formatted || null }).select().single();
         if (error) { toast.error(error.message); return; }
         setDepartments(prev => [...prev, data]);
         toast.success('Department initialized');
@@ -168,7 +171,7 @@ export default function AdminDepartmentsPage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Voice Comms Server</label>
-                  <input type="tel" value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(59,130,246,0.1)] focus:border-[var(--secondary)]" placeholder="+91 XXXXXXXXXX" />
+                  <input type="tel" value={form.contact_phone} onChange={e => { const c = e.target.value.replace(/[^\d+]/g, ''); const f = c.startsWith('+') ? '+' + c.slice(1).replace(/\+/g, '') : c.replace(/\+/g, ''); setForm(ff => ({ ...ff, contact_phone: f })); }} className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(59,130,246,0.1)] focus:border-[var(--secondary)]" placeholder="+91 9876543210" maxLength={13} />
                 </div>
               </div>
 

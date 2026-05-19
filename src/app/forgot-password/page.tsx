@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Building2, Mail, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Building2, Mail, Loader2, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn, validateEmail } from '@/lib/utils';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const emailValidation = useMemo(() => validateEmail(email), [email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) { toast.error('Please enter your email address'); return; }
+    setTouched(true);
+    if (!emailValidation.valid) { toast.error(emailValidation.error || 'Please enter a valid email address'); return; }
     setLoading(true);
     try {
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
@@ -60,9 +65,15 @@ export default function ForgotPasswordPage() {
                 <label className="block text-sm font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wide">Email Address</label>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  onBlur={() => setTouched(true)}
                   placeholder="Enter your registered email"
-                  className="glass-input !py-3.5 !text-base" autoComplete="email" required
+                  className={cn("glass-input !py-3.5 !text-base", touched && !emailValidation.valid && "!border-[var(--danger)]")} autoComplete="email" required
                 />
+                {touched && !emailValidation.valid && (
+                  <p className="text-xs font-semibold text-[var(--danger)] mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {emailValidation.error}
+                  </p>
+                )}
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full !py-4 text-base">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : <>Send Reset Link <Mail className="w-5 h-5 ml-2" /></>}

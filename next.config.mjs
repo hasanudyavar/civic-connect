@@ -46,6 +46,11 @@ const nextConfig = {
   // Performance flags
   compress: true,
   swcMinify: true,
+  reactStrictMode: true,
+  // Tree-shake heavy packages for smaller bundles
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns', 'recharts', 'framer-motion'],
+  },
   // Hide framework fingerprint
   poweredByHeader: false,
 };

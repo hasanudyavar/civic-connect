@@ -5,6 +5,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Ward } from '@/lib/types';
 import { Plus, Pencil, X, Loader2, Map } from 'lucide-react';
 import { toast } from 'sonner';
+import { validatePhone } from '@/lib/utils';
 
 export default function AdminWardsPage() {
   const [wards, setWards] = useState<Ward[]>([]);
@@ -30,17 +31,19 @@ export default function AdminWardsPage() {
 
   const handleSave = async () => {
     if (!form.name || !form.ward_number) { toast.error('Zone designation parameters missing'); return; }
+    const phoneV = validatePhone(form.contact_phone);
+    if (!phoneV.valid) { toast.error(phoneV.error!); return; }
     try {
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
       const supabase = createBrowserSupabaseClient();
 
       if (editing) {
-        const { error } = await supabase.from('wards').update({ name: form.name, ward_number: parseInt(form.ward_number), contact_phone: form.contact_phone || null }).eq('id', editing.id);
+        const { error } = await supabase.from('wards').update({ name: form.name, ward_number: parseInt(form.ward_number), contact_phone: phoneV.formatted || null }).eq('id', editing.id);
         if (error) { toast.error(error.message); return; }
-        setWards(prev => prev.map(w => w.id === editing.id ? { ...w, name: form.name, ward_number: parseInt(form.ward_number), contact_phone: form.contact_phone || null } : w));
+        setWards(prev => prev.map(w => w.id === editing.id ? { ...w, name: form.name, ward_number: parseInt(form.ward_number), contact_phone: phoneV.formatted || null } : w));
         toast.success('Zone parameters updated');
       } else {
-        const { data, error } = await supabase.from('wards').insert({ name: form.name, ward_number: parseInt(form.ward_number), city: 'Bhatkal', contact_phone: form.contact_phone || null }).select().single();
+        const { data, error } = await supabase.from('wards').insert({ name: form.name, ward_number: parseInt(form.ward_number), city: 'Bhatkal', contact_phone: phoneV.formatted || null }).select().single();
         if (error) { toast.error(error.message); return; }
         setWards(prev => [...prev, data]);
         toast.success('New Zone established');
@@ -146,7 +149,7 @@ export default function AdminWardsPage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Emergency DB</label>
-                  <input type="tel" value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(34,197,94,0.1)] focus:border-[var(--success)]" placeholder="+91..." />
+                  <input type="tel" value={form.contact_phone} onChange={e => { const c = e.target.value.replace(/[^\d+]/g, ''); const f = c.startsWith('+') ? '+' + c.slice(1).replace(/\+/g, '') : c.replace(/\+/g, ''); setForm(ff => ({ ...ff, contact_phone: f })); }} className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(34,197,94,0.1)] focus:border-[var(--success)]" placeholder="+91 9876543210" maxLength={13} />
                 </div>
               </div>
 

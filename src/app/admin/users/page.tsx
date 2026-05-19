@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Profile, UserRole, Ward, Department } from '@/lib/types';
 import { ROLE_LABELS } from '@/lib/constants';
-import { Plus, Search, Pencil, Shield, ToggleLeft, ToggleRight, X, Lock, Loader2, Users } from 'lucide-react';
+import { Plus, Search, Pencil, Shield, ToggleLeft, ToggleRight, X, Lock, Loader2, Users, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn, validatePhone, validateEmail, validateName } from '@/lib/utils';
 
 const roleColors: Record<string, string> = {
   citizen: 'bg-[rgba(59,130,246,0.1)] text-[var(--blue)] border-[rgba(59,130,246,0.2)]',
@@ -72,18 +73,27 @@ export default function AdminUsersPage() {
 
   const handleSave = async () => {
     if (!form.full_name) { toast.error('Full Name is required'); return; }
+    const nameV = validateName(form.full_name);
+    if (!nameV.valid) { toast.error(nameV.error!); return; }
+    const phoneV = validatePhone(form.phone);
+    if (!phoneV.valid) { toast.error(phoneV.error!); return; }
+    if (!editing) {
+      const emailV = validateEmail(form.email);
+      if (!emailV.valid) { toast.error(emailV.error!); return; }
+      if (!form.password || form.password.length < 8) { toast.error('Password must be at least 8 characters'); return; }
+    }
     setSaving(true);
     try {
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
       const supabase = createBrowserSupabaseClient();
       if (editing) {
-        const { error } = await supabase.from('profiles').update({ full_name: form.full_name, phone: form.phone || null, role: form.role, ward_id: form.ward_id || null, department_id: form.department_id || null, updated_at: new Date().toISOString() }).eq('id', editing.id);
+        const { error } = await supabase.from('profiles').update({ full_name: form.full_name, phone: phoneV.formatted || null, role: form.role, ward_id: form.ward_id || null, department_id: form.department_id || null, updated_at: new Date().toISOString() }).eq('id', editing.id);
         if (error) { toast.error(error.message); return; }
-        setUsers(prev => prev.map(u => u.id === editing.id ? { ...u, full_name: form.full_name, phone: form.phone || null, role: form.role, ward_id: form.ward_id || null, department_id: form.department_id || null } : u));
+        setUsers(prev => prev.map(u => u.id === editing.id ? { ...u, full_name: form.full_name, phone: phoneV.formatted || null, role: form.role, ward_id: form.ward_id || null, department_id: form.department_id || null } : u));
         toast.success('Personnel record synchronized');
       } else {
         if (!form.email || !form.password) { toast.error('Credentials required for new issuance'); setSaving(false); return; }
-        const res = await fetch('/api/admin/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+        const res = await fetch('/api/admin/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, phone: phoneV.formatted }) });
         const data = await res.json();
         if (!data.success) { toast.error(data.error || 'Identity creation failed'); setSaving(false); return; }
         if (data.data) setUsers(prev => [data.data, ...prev]);
@@ -257,7 +267,7 @@ export default function AdminUsersPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Mobile Relay</label>
-                  <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 XXXXXXXXXX" className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(245,166,35,0.1)]" />
+                  <input type="tel" value={form.phone} onChange={e => { const c = e.target.value.replace(/[^\d+]/g, ''); const f = c.startsWith('+') ? '+' + c.slice(1).replace(/\+/g, '') : c.replace(/\+/g, ''); setForm(ff => ({ ...ff, phone: f })); }} placeholder="+91 9876543210" className="glass-input !py-3.5 focus:shadow-[0_0_15px_rgba(245,166,35,0.1)]" maxLength={13} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Clearance Protocol</label>

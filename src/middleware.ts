@@ -60,10 +60,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // For authenticated users
+  // For authenticated users — fetch profile ONCE and reuse
   if (user) {
-    // Redirect from login/register if already authenticated
-    if (pathname === '/login' || pathname === '/register') {
+    const needsRoleCheck = pathname === '/login' || pathname === '/register' || !isPublicRoute;
+
+    if (needsRoleCheck) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -71,18 +72,13 @@ export async function middleware(request: NextRequest) {
         .single();
 
       const role = profile?.role || 'citizen';
-      return NextResponse.redirect(new URL(getRoleHome(role), request.url));
-    }
 
-    // Check role-based route access for protected routes
-    if (!isPublicRoute) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
+      // Redirect from login/register if already authenticated
+      if (pathname === '/login' || pathname === '/register') {
+        return NextResponse.redirect(new URL(getRoleHome(role), request.url));
+      }
 
-      const role = profile?.role || 'citizen';
+      // Check role-based route access for protected routes
       const redirect = checkRoleAccess(pathname, role);
       if (redirect) {
         return NextResponse.redirect(new URL(redirect, request.url));

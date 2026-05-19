@@ -59,6 +59,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields: full_name, email, password, role' }, { status: 400 });
     }
 
+    // Validate full name
+    const trimmedName = full_name.trim();
+    if (trimmedName.length < 2 || trimmedName.length > 100) {
+      return NextResponse.json({ error: 'Full name must be between 2 and 100 characters' }, { status: 400 });
+    }
+
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email.trim().toLowerCase())) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+
+    // Validate phone if provided
+    if (phone && phone.trim() !== '') {
+      const cleaned = phone.replace(/[\s\-()]/g, '');
+      let digits = cleaned;
+      if (digits.startsWith('+91')) digits = digits.slice(3);
+      else if (digits.startsWith('91') && digits.length === 12) digits = digits.slice(2);
+      else if (digits.startsWith('0') && digits.length === 11) digits = digits.slice(1);
+      
+      if (!/^\d{10}$/.test(digits) || !/^[6-9]/.test(digits)) {
+        return NextResponse.json({ error: 'Phone must be a valid 10-digit Indian mobile number starting with 6-9' }, { status: 400 });
+      }
+    }
+
     // 3. Enforce role-based creation rules
     const allowedByRole: Record<string, string[]> = {
       super_admin: ['citizen', 'dept_staff', 'ward_supervisor', 'taluk_admin'],

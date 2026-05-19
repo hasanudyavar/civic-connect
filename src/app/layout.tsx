@@ -7,12 +7,14 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+  preload: true,
 });
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
   display: 'swap',
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -39,6 +41,15 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#f8f9ff" />
+        {/* Preconnect to critical origins for faster loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href={process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://supabase.co'}
+        />
+        <link rel="dns-prefetch" href="https://unpkg.com" />
+        {/* Leaflet CSS — loaded with lower priority to avoid render-blocking */}
         <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"

@@ -63,7 +63,7 @@ export default function NewComplaintPage() {
   const removeImage = (idx: number) => setImages(prev => prev.filter((_, i) => i !== idx));
 
   const handleEnhance = async () => {
-    if (!description || description.length < 10) { toast.error('Please enter at least 10 characters'); return; }
+    if (!description || description.length < 20) { toast.error('Please enter at least 20 characters'); return; }
     setEnhancing(true);
     try {
       const cat = categories.find(c => c.id === categoryId);
@@ -309,7 +309,7 @@ export default function NewComplaintPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-bold text-[var(--on-surface-variant)]">Description <span className="text-[var(--primary)]">*</span></label>
-                  <button onClick={handleEnhance} disabled={enhancing || description.length < 10} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--surface-container-highest)] text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors disabled:opacity-50">
+                  <button onClick={handleEnhance} disabled={enhancing || description.length < 20} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--surface-container-highest)] text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors disabled:opacity-50">
                     {enhancing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                     {enhancing ? 'Enhancing...' : '✨ Enhance with AI'}
                   </button>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Profile } from '@/lib/types';
 
-import { formatDate } from '@/lib/utils';
+import { formatDate, validatePhone } from '@/lib/utils';
 import { Loader2, Plus, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -39,13 +39,16 @@ export default function TalukAdminsPage() {
       toast.error('Name, email and password are required');
       return;
     }
+    // Validate phone if provided
+    const phoneV = validatePhone(formData.phone);
+    if (!phoneV.valid) { toast.error(phoneV.error!); return; }
     setCreating(true);
     try {
       // Create user via Supabase admin API (requires service role - call backend)
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, role: 'taluk_admin' }),
+        body: JSON.stringify({ ...formData, phone: phoneV.formatted, role: 'taluk_admin' }),
       });
       const data = await res.json();
       if (data.error) { toast.error(data.error); return; }
@@ -79,7 +82,7 @@ export default function TalukAdminsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <input type="text" value={formData.full_name} onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))} placeholder="Full Name" className="glass-input" />
               <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="Email" className="glass-input" />
-              <input type="tel" value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" className="glass-input" />
+              <input type="tel" value={formData.phone} onChange={e => { const c = e.target.value.replace(/[^\d+]/g, ''); const f = c.startsWith('+') ? '+' + c.slice(1).replace(/\+/g, '') : c.replace(/\+/g, ''); setFormData(p => ({ ...p, phone: f })); }} placeholder="+91 9876543210" className="glass-input" maxLength={13} />
               <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} placeholder="Password" className="glass-input" />
             </div>
             <div className="flex gap-2">

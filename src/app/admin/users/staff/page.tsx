@@ -5,7 +5,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { useAuth } from '@/lib/auth-context';
 import { Profile } from '@/lib/types';
 
-import { canToggleUserStatus } from '@/lib/utils';
+import { canToggleUserStatus, validatePhone, validateEmail, validateName } from '@/lib/utils';
 import { Loader2, Plus, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -48,12 +48,19 @@ export default function ManageStaffPage() {
 
   const handleCreate = async () => {
     if (!formData.full_name || !formData.email || !formData.password) { toast.error('Name, email, password required'); return; }
+    const nameV = validateName(formData.full_name);
+    if (!nameV.valid) { toast.error(nameV.error!); return; }
+    const emailV = validateEmail(formData.email);
+    if (!emailV.valid) { toast.error(emailV.error!); return; }
+    const phoneV = validatePhone(formData.phone);
+    if (!phoneV.valid) { toast.error(phoneV.error!); return; }
+    if (formData.password.length < 8) { toast.error('Password must be at least 8 characters'); return; }
     setCreating(true);
     try {
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, role: 'dept_staff' }),
+        body: JSON.stringify({ ...formData, phone: phoneV.formatted, role: 'dept_staff' }),
       });
       const data = await res.json();
       if (data.error) { toast.error(data.error); return; }
@@ -76,7 +83,7 @@ export default function ManageStaffPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <input type="text" value={formData.full_name} onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))} placeholder="Full Name" className="glass-input" />
               <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="Email" className="glass-input" />
-              <input type="tel" value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" className="glass-input" />
+              <input type="tel" value={formData.phone} onChange={e => { const c = e.target.value.replace(/[^\d+]/g, ''); const f = c.startsWith('+') ? '+' + c.slice(1).replace(/\+/g, '') : c.replace(/\+/g, ''); setFormData(p => ({ ...p, phone: f })); }} placeholder="+91 9876543210" className="glass-input" maxLength={13} />
               <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} placeholder="Password" className="glass-input" />
               <select value={formData.ward_id} onChange={e => setFormData(p => ({ ...p, ward_id: e.target.value }))} className="glass-select"><option value="">Select Ward</option>{wards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select>
               <select value={formData.department_id} onChange={e => setFormData(p => ({ ...p, department_id: e.target.value }))} className="glass-select"><option value="">Select Department</option>{departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select>

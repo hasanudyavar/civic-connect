@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Eye, EyeOff, Shield, Loader2, Check, X, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Building2, Eye, EyeOff, Shield, Loader2, Check, X, ArrowRight, AlertCircle } from 'lucide-react';
+import { cn, validatePhone, validateEmail, validateName } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/layout/DashboardShell';
 
@@ -40,12 +40,60 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Track which fields have been touched (blurred)
+  const [touched, setTouched] = useState({ name: false, email: false, phone: false, password: false, confirmPassword: false });
+
+  const handleBlur = useCallback((field: keyof typeof touched) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  }, []);
+
+  // Validation results
+  const nameValidation = useMemo(() => validateName(name), [name]);
+  const emailValidation = useMemo(() => validateEmail(email), [email]);
+  const phoneValidation = useMemo(() => validatePhone(phone), [phone]);
   const strength = useMemo(() => getPasswordStrength(password), [password]);
-  const isValid = name && email && password.length >= 8 && password === confirmPassword && strength.score >= 2;
+
+  const passwordError = useMemo(() => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (strength.score < 2) return 'Password is too weak';
+    return null;
+  }, [password, strength.score]);
+
+  const confirmPasswordError = useMemo(() => {
+    if (!confirmPassword) return null;
+    if (password !== confirmPassword) return 'Passwords don\'t match';
+    return null;
+  }, [password, confirmPassword]);
+
+  const isValid = nameValidation.valid && emailValidation.valid && phoneValidation.valid && !passwordError && password === confirmPassword && confirmPassword.length > 0;
+
+  // Phone input handler — allow only digits and +
+  const handlePhoneChange = useCallback((value: string) => {
+    // Strip everything except digits and leading +
+    const cleaned = value.replace(/[^\d+]/g, '');
+    // Ensure only one + at the start
+    const formatted = cleaned.startsWith('+') ? '+' + cleaned.slice(1).replace(/\+/g, '') : cleaned.replace(/\+/g, '');
+    setPhone(formatted);
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid) { toast.error('Please complete all required fields correctly'); return; }
+
+    // Mark all fields as touched
+    setTouched({ name: true, email: true, phone: true, password: true, confirmPassword: true });
+
+    if (!isValid) {
+      // Show the first error
+      if (!nameValidation.valid) { toast.error(nameValidation.error!); return; }
+      if (!emailValidation.valid) { toast.error(emailValidation.error!); return; }
+      if (!phoneValidation.valid) { toast.error(phoneValidation.error!); return; }
+      if (passwordError) { toast.error(passwordError); return; }
+      if (confirmPasswordError) { toast.error(confirmPasswordError); return; }
+      toast.error('Please complete all required fields correctly');
+      return;
+    }
+
     setLoading(true);
     try {
       const { createBrowserSupabaseClient } = await import('@/lib/supabase/client');
@@ -57,7 +105,7 @@ export default function RegisterPage() {
         options: {
           data: {
             full_name: name.trim(),
-            phone: phone.trim() || null,
+            phone: phoneValidation.formatted || null,
           },
         },
       });
@@ -108,28 +156,83 @@ export default function RegisterPage() {
           <p className="text-base text-[var(--on-surface-variant)] font-medium">Join Civic Connect — Bhatkal Taluk</p>
         </div>
 
-        <form onSubmit={handleRegister} className="glass-card p-8 sm:p-10 mb-8 rounded-[2rem] border-[rgba(255,255,255,0.05)] shadow-2xl relative overflow-hidden">
+        <form onSubmit={handleRegister} className="glass-card p-8 sm:p-10 mb-8 rounded-[2rem] border-[rgba(255,255,255,0.05)] shadow-2xl relative overflow-hidden" noValidate>
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(255,255,255,0.03)] to-transparent pointer-events-none" />
           <div className="space-y-5 relative z-10">
+            {/* Full Name */}
             <div>
               <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Full Name <span className="text-[var(--primary)]">*</span></label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Rahul Sharma" className="glass-input !py-3 !text-sm" autoComplete="name" required />
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onBlur={() => handleBlur('name')}
+                placeholder="e.g. Rahul Sharma"
+                className={cn("glass-input !py-3 !text-sm", touched.name && !nameValidation.valid && "!border-[var(--danger)]")}
+                autoComplete="name"
+                maxLength={100}
+                required
+              />
+              {touched.name && !nameValidation.valid && (
+                <p className="text-xs font-semibold text-[var(--danger)] mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {nameValidation.error}
+                </p>
+              )}
             </div>
+
+            {/* Email & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Email <span className="text-[var(--primary)]">*</span></label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" className="glass-input !py-3 !text-sm" autoComplete="email" required />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onBlur={() => handleBlur('email')}
+                  placeholder="your@email.com"
+                  className={cn("glass-input !py-3 !text-sm", touched.email && !emailValidation.valid && "!border-[var(--danger)]")}
+                  autoComplete="email"
+                  required
+                />
+                {touched.email && !emailValidation.valid && (
+                  <p className="text-xs font-semibold text-[var(--danger)] mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {emailValidation.error}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Phone</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 0000000000" className="glass-input !py-3 !text-sm" autoComplete="tel" />
+                <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Phone <span className="text-[10px] normal-case tracking-normal text-[var(--outline)]">(optional)</span></label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--outline)] pointer-events-none">🇮🇳</span>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={e => handlePhoneChange(e.target.value)}
+                    onBlur={() => handleBlur('phone')}
+                    placeholder="+91 9876543210"
+                    className={cn("glass-input !py-3 !text-sm !pl-9", touched.phone && !phoneValidation.valid && "!border-[var(--danger)]")}
+                    autoComplete="tel"
+                    maxLength={13}
+                  />
+                </div>
+                {touched.phone && !phoneValidation.valid && (
+                  <p className="text-xs font-semibold text-[var(--danger)] mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {phoneValidation.error}
+                  </p>
+                )}
+                {touched.phone && phoneValidation.valid && phone.trim() !== '' && (
+                  <p className="text-xs font-semibold text-[var(--success)] mt-1.5 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" /> {phoneValidation.formatted}
+                  </p>
+                )}
               </div>
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Password <span className="text-[var(--primary)]">*</span></label>
               <div className="relative group">
-                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="glass-input !py-3 !text-sm !pr-10" autoComplete="new-password" required />
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} onBlur={() => handleBlur('password')} placeholder="••••••••" className={cn("glass-input !py-3 !text-sm !pr-10", touched.password && passwordError && "!border-[var(--danger)]")} autoComplete="new-password" maxLength={128} required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--outline)] hover:text-[var(--primary)] transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -157,10 +260,12 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label className="block text-[11px] font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-widest">Confirm Password <span className="text-[var(--primary)]">*</span></label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className={cn("glass-input !py-3 !text-sm", confirmPassword && password !== confirmPassword && "!border-[var(--danger)]")} autoComplete="new-password" required />
+              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onBlur={() => handleBlur('confirmPassword')} placeholder="••••••••" className={cn("glass-input !py-3 !text-sm", confirmPassword && password !== confirmPassword && "!border-[var(--danger)]")} autoComplete="new-password" maxLength={128} required />
               {confirmPassword && password !== confirmPassword && <p className="text-xs font-semibold text-[var(--danger)] mt-1.5 flex items-center gap-1"><X className="w-3.5 h-3.5" /> Passwords don&apos;t match</p>}
+              {confirmPassword && password === confirmPassword && confirmPassword.length > 0 && <p className="text-xs font-semibold text-[var(--success)] mt-1.5 flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Passwords match</p>}
             </div>
 
             <button type="submit" disabled={loading || !isValid} className="btn-primary w-full !py-4 text-sm mt-4 shadow-[0_0_20px_rgba(0,105,72,0.2)] group disabled:opacity-50 disabled:shadow-none">

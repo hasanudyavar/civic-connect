@@ -120,7 +120,7 @@ export default function BrandingPage() {
             </div>
             <div>
               <label className="block text-xs font-bold text-[var(--on-surface-variant)] mb-2 uppercase tracking-wider">Contact Phone</label>
-              <input type="tel" value={config.contact_phone || ''} onChange={e => update('contact_phone', e.target.value)} className="glass-input" placeholder="+91 08385-000000" />
+              <input type="tel" value={config.contact_phone || ''} onChange={e => { const c = e.target.value.replace(/[^\d+\s-]/g, ''); update('contact_phone', c); }} className="glass-input" placeholder="+91 9876543210" maxLength={15} />
             </div>
           </div>
         </div>

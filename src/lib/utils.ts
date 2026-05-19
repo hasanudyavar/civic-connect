@@ -191,3 +191,97 @@ export function canToggleUserStatus(currentRole: string, targetRole: string): bo
   }
   return false;
 }
+
+// ── Phone validation (Indian format) ─────────────────────────
+/**
+ * Validates an Indian phone number.
+ * Accepts: +91XXXXXXXXXX, +91 XXXXXXXXXX, 91XXXXXXXXXX, 0XXXXXXXXXX, XXXXXXXXXX
+ * The core number must be exactly 10 digits starting with 6-9.
+ */
+export function validatePhone(phone: string): { valid: boolean; error: string | null; formatted: string } {
+  if (!phone || phone.trim() === '') {
+    return { valid: true, error: null, formatted: '' }; // Phone is optional
+  }
+
+  // Strip spaces, dashes, parentheses
+  const cleaned = phone.replace(/[\s\-()]/g, '');
+
+  // Extract the 10-digit number
+  let digits = cleaned;
+  if (digits.startsWith('+91')) {
+    digits = digits.slice(3);
+  } else if (digits.startsWith('91') && digits.length === 12) {
+    digits = digits.slice(2);
+  } else if (digits.startsWith('0') && digits.length === 11) {
+    digits = digits.slice(1);
+  }
+
+  // Must be exactly 10 digits
+  if (!/^\d{10}$/.test(digits)) {
+    return { valid: false, error: 'Phone number must be exactly 10 digits', formatted: phone };
+  }
+
+  // Must start with 6, 7, 8, or 9 (valid Indian mobile)
+  if (!/^[6-9]/.test(digits)) {
+    return { valid: false, error: 'Phone number must start with 6, 7, 8, or 9', formatted: phone };
+  }
+
+  return { valid: true, error: null, formatted: `+91${digits}` };
+}
+
+/**
+ * Formats a raw phone input into the display format: +91 XXXXX XXXXX
+ */
+export function formatPhoneDisplay(phone: string): string {
+  const result = validatePhone(phone);
+  if (!result.valid || !result.formatted) return phone;
+  const digits = result.formatted.replace('+91', '');
+  return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+}
+
+// ── Email validation ──────────────────────────────────────────
+export function validateEmail(email: string): { valid: boolean; error: string | null } {
+  if (!email || email.trim() === '') {
+    return { valid: false, error: 'Email is required' };
+  }
+  const trimmed = email.trim().toLowerCase();
+  // RFC 5322 simplified pattern
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(trimmed)) {
+    return { valid: false, error: 'Please enter a valid email address' };
+  }
+  return { valid: true, error: null };
+}
+
+// ── Name validation ───────────────────────────────────────────
+export function validateName(name: string): { valid: boolean; error: string | null } {
+  if (!name || name.trim() === '') {
+    return { valid: false, error: 'Full name is required' };
+  }
+  const trimmed = name.trim();
+  if (trimmed.length < 2) {
+    return { valid: false, error: 'Name must be at least 2 characters' };
+  }
+  if (trimmed.length > 100) {
+    return { valid: false, error: 'Name must be less than 100 characters' };
+  }
+  // Allow Unicode letters, spaces, dots, hyphens, apostrophes
+  if (!/^[\p{L}\s.'-]+$/u.test(trimmed)) {
+    return { valid: false, error: 'Name can only contain letters, spaces, dots, hyphens, and apostrophes' };
+  }
+  return { valid: true, error: null };
+}
+
+// ── Password validation ──────────────────────────────────────
+export function validatePassword(password: string): { valid: boolean; error: string | null } {
+  if (!password) {
+    return { valid: false, error: 'Password is required' };
+  }
+  if (password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters' };
+  }
+  if (password.length > 128) {
+    return { valid: false, error: 'Password must be less than 128 characters' };
+  }
+  return { valid: true, error: null };
+}
